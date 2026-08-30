@@ -46,6 +46,31 @@ button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;bor
 @media(max-width:600px){.maintenance-grid{grid-template-columns:1fr}}
 
 @media(max-width:600px){.grid,.summary{grid-template-columns:1fr}.full{grid-column:auto}}
+
+.chart-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+.chart-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px;min-height:245px;overflow:hidden}
+.chart-card h3{margin:0 0 3px;font-size:15px}
+.chart-sub{font-size:11px;color:#64748b;margin-bottom:10px}
+.chart-wrap{height:185px;position:relative}
+.bar-chart{height:100%;display:flex;align-items:flex-end;gap:8px;padding:10px 4px 24px;border-bottom:1px solid #cbd5e1}
+.bar-item{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+.bar-value{font-size:10px;margin-bottom:3px;color:#334155;white-space:nowrap}
+.bar{width:75%;max-width:42px;border-radius:5px 5px 0 0;min-height:2px}
+.bar-label{font-size:9px;color:#64748b;margin-top:5px;text-align:center;max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty-chart{height:100%;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px}
+.donut-wrap{display:flex;align-items:center;justify-content:center;height:100%;gap:14px}
+.donut{width:128px;height:128px;border-radius:50%;position:relative;flex:none}
+.donut:after{content:"";position:absolute;inset:31px;background:#fff;border-radius:50%}
+.legend{max-height:150px;overflow:auto;font-size:10px}
+.legend-row{display:flex;align-items:center;gap:5px;margin:4px 0}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex:none}
+.kpi-mini{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.kpi-mini div{padding:10px;border-radius:10px;background:#f8fafc;border:1px solid #e5e7eb}
+.kpi-mini small{display:block;color:#64748b;font-size:10px}.kpi-mini b{font-size:16px}
+.refresh-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px}
+.refresh-pill{font-size:11px;color:#475569;background:#f1f5f9;border-radius:999px;padding:6px 10px}
+@media(max-width:700px){.chart-grid{grid-template-columns:1fr}.chart-card{min-height:230px}}
+
 </style>
 </head>
 <body>
@@ -65,13 +90,31 @@ button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;bor
 <main>
 <section id="dashboard">
   <div class="card">
-    <h2>Overview</h2>
+    <h2>Dashboard</h2>
     <div class="summary">
       <div class="stat"><small>Income</small><strong class="income" id="totalIncome">₹0</strong></div>
       <div class="stat"><small>Total Expense</small><strong class="expense" id="totalExpense">₹0</strong></div>
       <div class="stat"><small>Balance</small><strong class="balance" id="balance">₹0</strong></div>
     </div>
     <div class="status" id="vehicleSummary">Vehicle expense: ₹0</div>
+    <div class="refresh-row">
+      <span class="refresh-pill" id="dashboardRefreshStatus">Cloud refresh: ready</span>
+      <button class="secondary" type="button" onclick="loadCloud()">Refresh now</button>
+    </div>
+  </div>
+
+  <div class="kpi-mini">
+    <div><small>This Month Expense</small><b id="monthExpense">₹0</b></div>
+    <div><small>This Month Income</small><b id="monthIncome">₹0</b></div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card"><h3>Monthly Expense</h3><div class="chart-sub">Expense by month</div><div class="chart-wrap" id="monthlyExpenseChart"></div></div>
+    <div class="chart-card"><h3>Source or Expense</h3><div class="chart-sub">Income source and expense category</div><div class="chart-wrap" id="sourceExpenseChart"></div></div>
+    <div class="chart-card"><h3>Daily Expense</h3><div class="chart-sub">Current month daily spending</div><div class="chart-wrap" id="dailyExpenseChart"></div></div>
+    <div class="chart-card"><h3>Category Wise Expense</h3><div class="chart-sub">Where your money is going</div><div class="chart-wrap" id="categoryChart"></div></div>
+    <div class="chart-card"><h3>Mode of Payment</h3><div class="chart-sub">Expense by payment method</div><div class="chart-wrap" id="paymentChart"></div></div>
+    <div class="chart-card"><h3>Income vs Outflow</h3><div class="chart-sub">Current month comparison</div><div class="chart-wrap" id="incomeExpenseChart"></div></div>
   </div>
   <div class="card">
     <h2>Vehicle Maintenance</h2>
@@ -439,6 +482,57 @@ function updateMaintenanceDashboard(){
   });
 }
 
+
+const CHART_COLORS=["#2563eb","#7c3aed","#059669","#ea580c","#db2777","#0891b2","#65a30d","#9333ea","#ca8a04","#475569"];
+function shortMoney(n){n=Number(n||0);if(n>=100000)return"₹"+(n/100000).toFixed(1)+"L";if(n>=1000)return"₹"+(n/1000).toFixed(1)+"K";return"₹"+Math.round(n);}
+function monthKeyOf(d){return String(d||"").slice(0,7);}
+function monthLabel(k){if(!k)return"";return new Date(k+"-01T00:00:00").toLocaleDateString("en-IN",{month:"short",year:"2-digit"});}
+function renderBars(elId,items,maxItems=8){
+ const el=document.getElementById(elId);if(!el)return;
+ items=items.filter(x=>Number(x.value)>0).sort((a,b)=>b.value-a.value).slice(0,maxItems);
+ if(!items.length){el.innerHTML='<div class="empty-chart">No data yet</div>';return;}
+ const max=Math.max(...items.map(x=>x.value),1);
+ el.innerHTML='<div class="bar-chart">'+items.map((x,i)=>'<div class="bar-item"><div class="bar-value">'+shortMoney(x.value)+'</div><div class="bar" style="height:'+Math.max(2,(x.value/max)*145)+'px;background:'+CHART_COLORS[i%CHART_COLORS.length]+'"></div><div class="bar-label" title="'+escapeHtml(x.label)+'">'+escapeHtml(x.label)+'</div></div>').join("")+'</div>';
+}
+function renderDonut(elId,items){
+ const el=document.getElementById(elId);if(!el)return;
+ items=items.filter(x=>Number(x.value)>0).sort((a,b)=>b.value-a.value);
+ if(!items.length){el.innerHTML='<div class="empty-chart">No data yet</div>';return;}
+ const total=items.reduce((s,x)=>s+x.value,0);let angle=0,stops=[];
+ items.forEach((x,i)=>{const end=angle+(x.value/total)*360;stops.push(CHART_COLORS[i%CHART_COLORS.length]+" "+angle+"deg "+end+"deg");angle=end;});
+ el.innerHTML='<div class="donut-wrap"><div class="donut" style="background:conic-gradient('+stops.join(",")+')"></div><div class="legend">'+items.slice(0,10).map((x,i)=>'<div class="legend-row"><span class="legend-dot" style="background:'+CHART_COLORS[i%CHART_COLORS.length]+'"></span><span>'+escapeHtml(x.label)+' — '+shortMoney(x.value)+'</span></div>').join("")+'</div></div>';
+}
+function renderDashboardCharts(){
+ const currentMonth=new Date().toISOString().slice(0,7);
+ const expenses=transactions.filter(t=>t.type!=="Income"), incomes=transactions.filter(t=>t.type==="Income");
+ const monthly={};
+ expenses.forEach(t=>{const k=monthKeyOf(t.date);if(k)monthly[k]=(monthly[k]||0)+Number(t.amount||0);});
+ renderBars("monthlyExpenseChart",Object.keys(monthly).sort().slice(-8).map(k=>({label:monthLabel(k),value:monthly[k]})),8);
+
+ const se={};
+ incomes.filter(t=>monthKeyOf(t.date)===currentMonth).forEach(t=>{const k="Income: "+(t.source||"Other");se[k]=(se[k]||0)+Number(t.amount||0);});
+ expenses.filter(t=>monthKeyOf(t.date)===currentMonth).forEach(t=>{const k="Expense: "+(t.category||"Other");se[k]=(se[k]||0)+Number(t.amount||0);});
+ renderBars("sourceExpenseChart",Object.keys(se).map(k=>({label:k,value:se[k]})),8);
+
+ const daily={};
+ expenses.filter(t=>monthKeyOf(t.date)===currentMonth).forEach(t=>{const k=String(t.date).slice(8,10);if(k)daily[k]=(daily[k]||0)+Number(t.amount||0);});
+ renderBars("dailyExpenseChart",Object.keys(daily).sort((a,b)=>Number(a)-Number(b)).map(k=>({label:k,value:daily[k]})),15);
+
+ const cats={}, pays={};
+ expenses.filter(t=>monthKeyOf(t.date)===currentMonth).forEach(t=>{
+   const c=t.category||"Other";cats[c]=(cats[c]||0)+Number(t.amount||0);
+   const p=t.paymentMethod||"Other";pays[p]=(pays[p]||0)+Number(t.amount||0);
+ });
+ renderDonut("categoryChart",Object.keys(cats).map(k=>({label:k,value:cats[k]})));
+ renderDonut("paymentChart",Object.keys(pays).map(k=>({label:k,value:pays[k]})));
+
+ const mi=incomes.filter(t=>monthKeyOf(t.date)===currentMonth).reduce((s,t)=>s+Number(t.amount||0),0);
+ const me=expenses.filter(t=>monthKeyOf(t.date)===currentMonth).reduce((s,t)=>s+Number(t.amount||0),0);
+ renderBars("incomeExpenseChart",[{label:"Income",value:mi},{label:"Outflow",value:me}],2);
+ document.getElementById("monthIncome").textContent=money(mi);
+ document.getElementById("monthExpense").textContent=money(me);
+}
+
 function render(){
   let income=0,expense=0,vehicleExpense=0;
   transactions.forEach(t=>{
@@ -451,6 +545,7 @@ function render(){
   balance.textContent=money(income-expense);
   vehicleSummary.textContent="Vehicle expense: "+money(vehicleExpense);
   updateMaintenanceDashboard();
+  renderDashboardCharts();
 
   if(!transactions.length){recent.textContent="No transactions yet.";return}
   recent.innerHTML=transactions.slice(0,15).map(t=>`
@@ -482,9 +577,10 @@ function saveUrl(){
   localStorage.setItem(URLKEY,url);setStatus("URL saved.");
 }
 
-function loadCloud(){
+function loadCloud(auto=false){
   const url=getUrl(), callback="passbookCallback_"+Date.now();
   setStatus("Loading cloud data...");
+  cloudRefreshInProgress=true;
 
   window[callback]=function(data){
     try{
@@ -513,8 +609,11 @@ function loadCloud(){
       updateOdoHints();
       updateMaintenanceDashboard();
       setStatus("Cloud data loaded successfully. "+cloud.length+" records found.");
+      cloudRefreshInProgress=false;
+      const rs=document.getElementById("dashboardRefreshStatus"); if(rs) rs.textContent="Cloud refresh: "+new Date().toLocaleTimeString("en-IN");
     }catch(e){
       setStatus("Cloud data received, but could not be read.");
+      cloudRefreshInProgress=false;
     }
 
     delete window[callback];
@@ -526,6 +625,7 @@ function loadCloud(){
 
   script.onerror=function(){
     setStatus("Could not connect to Apps Script. Check deployment access and URL.");
+    cloudRefreshInProgress=false;
     delete window[callback];
     script.remove();
   };
@@ -535,6 +635,22 @@ function loadCloud(){
 
 scriptUrl.value=localStorage.getItem(URLKEY)||SCRIPT_URL;
 render();updateOdoHints();
+
+let lastCloudRefresh=0;
+let cloudRefreshInProgress=false;
+const CLOUD_REFRESH_MS=60000;
+function autoRefreshCloud(force=false){
+  const now=Date.now();
+  if(cloudRefreshInProgress)return;
+  if(!force && now-lastCloudRefresh<CLOUD_REFRESH_MS)return;
+  if(!navigator.onLine)return;
+  lastCloudRefresh=now;
+  loadCloud(true);
+}
+setInterval(()=>autoRefreshCloud(false),CLOUD_REFRESH_MS);
+window.addEventListener("focus",()=>autoRefreshCloud(false));
+window.addEventListener("online",()=>autoRefreshCloud(true));
+
 </script>
 </body>
 </html>
