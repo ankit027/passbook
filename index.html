@@ -109,6 +109,115 @@ button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;bor
 .category-dropdown{border:1px solid #cbd5e1;background:#fff;color:#1e293b;border-radius:8px;padding:7px 32px 7px 10px;font-size:12px;min-width:170px;cursor:pointer}
 .dark .category-dropdown{background:#1e293b;color:#e5e7eb;border-color:#475569}
 
+
+/* COMPLETE DARK MODE FIX */
+html.dark, html.dark body{
+  background:#0b1220 !important;
+  color:#e5e7eb !important;
+}
+html.dark header{
+  background:#0b1220 !important;
+  color:#f8fafc !important;
+  border-bottom:1px solid #334155;
+}
+html.dark header p{color:#94a3b8 !important}
+html.dark nav{
+  background:#111827 !important;
+  border-bottom:1px solid #334155 !important;
+}
+html.dark nav button{
+  background:#111827 !important;
+  color:#94a3b8 !important;
+}
+html.dark nav button.active{
+  color:#f8fafc !important;
+  border-bottom-color:#60a5fa !important;
+}
+html.dark main{color:#e5e7eb !important}
+html.dark .card,
+html.dark .chart-card,
+html.dark .edit-box{
+  background:#111827 !important;
+  color:#e5e7eb !important;
+  border:1px solid #263449 !important;
+  box-shadow:0 4px 16px rgba(0,0,0,.25) !important;
+}
+html.dark .card h1,
+html.dark .card h2,
+html.dark .card h3,
+html.dark .card h4,
+html.dark .chart-title,
+html.dark .chart-sub,
+html.dark label,
+html.dark .stat small,
+html.dark .stat strong,
+html.dark .status{
+  color:#e5e7eb !important;
+}
+html.dark .kpi-mini div{
+  background:#172238 !important;
+  color:#e5e7eb !important;
+  border:1px solid #334155 !important;
+}
+html.dark .kpi-mini small,
+html.dark .kpi-mini b{color:#e5e7eb !important}
+html.dark .month-slicer-label,
+html.dark .category-slicer-label{
+  color:#cbd5e1 !important;
+}
+html.dark input,
+html.dark select,
+html.dark textarea{
+  background:#0f172a !important;
+  color:#f8fafc !important;
+  border-color:#475569 !important;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder{color:#64748b !important}
+html.dark .secondary,
+html.dark .theme-toggle,
+html.dark .edit-btn{
+  background:#1e293b !important;
+  color:#f8fafc !important;
+  border-color:#475569 !important;
+}
+html.dark .primary{
+  background:#2563eb !important;
+  color:#fff !important;
+}
+html.dark .month-chip{
+  background:#1e293b !important;
+  color:#cbd5e1 !important;
+  border-color:#475569 !important;
+}
+html.dark .month-chip.active{
+  background:#2563eb !important;
+  color:#fff !important;
+  border-color:#2563eb !important;
+}
+html.dark .category-dropdown{
+  background:#1e293b !important;
+  color:#f8fafc !important;
+  border-color:#475569 !important;
+}
+html.dark .refresh-pill{
+  background:#1e293b !important;
+  color:#cbd5e1 !important;
+}
+html.dark .dashboard-tools{color:#e5e7eb !important}
+html.dark .donut:after{background:#111827 !important;color:#e5e7eb !important}
+html.dark table,
+html.dark th,
+html.dark td{color:#e5e7eb !important;border-color:#334155 !important}
+
+
+.recent-tools{display:flex;align-items:center;gap:10px;margin:8px 0 12px;flex-wrap:wrap}
+.recent-filter{border:1px solid #cbd5e1;background:#fff;color:#1e293b;border-radius:8px;padding:7px 10px;font-size:12px;min-width:150px}
+.recent-count{font-size:11px;color:#64748b}
+.transaction-note{font-size:11px;margin-top:5px;color:#64748b;line-height:1.4}
+.dark .recent-filter{background:#1e293b;color:#e5e7eb;border-color:#475569}
+.dark .recent-count,.dark .transaction-note{color:#94a3b8}
+
 </style>
 </head>
 <body>
@@ -193,6 +302,15 @@ button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;bor
 
   <div class="card">
     <h2>Recent Transactions</h2>
+    <div class="recent-tools">
+      <label for="recentPeriod">Show:</label>
+      <select id="recentPeriod" class="recent-filter" onchange="setRecentPeriod(this.value)">
+        <option value="week">This Week</option>
+        <option value="month">This Month</option>
+        <option value="all">All Transactions</option>
+      </select>
+      <span id="recentCount" class="recent-count"></span>
+    </div>
     <div id="recent">No transactions yet.</div>
   </div>
 </section>
@@ -667,6 +785,63 @@ function renderDashboardCharts(){
 }
 
 
+
+let recentPeriod = "week";
+
+function localDateOnly(s){
+  if(!s)return null;
+  const p=String(s).split("-").map(Number);
+  if(p.length<3 || p.some(Number.isNaN))return null;
+  return new Date(p[0],p[1]-1,p[2]);
+}
+function startOfLocalWeek(d){
+  const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const day=x.getDay(); // Sunday=0
+  const diff=day===0 ? -6 : 1-day; // Monday start
+  x.setDate(x.getDate()+diff);
+  return x;
+}
+function isRecentMatch(t,period){
+  if(period==="all")return true;
+  const d=localDateOnly(t.date); if(!d)return false;
+  const now=new Date();
+  if(period==="month"){
+    return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
+  }
+  const start=startOfLocalWeek(now);
+  const end=new Date(start); end.setDate(start.getDate()+7);
+  return d>=start && d<end;
+}
+function setRecentPeriod(period){
+  recentPeriod=period;
+  renderRecentTransactions();
+}
+function renderRecentTransactions(){
+  const box=document.getElementById("recent");
+  const count=document.getElementById("recentCount");
+  if(!box)return;
+  const filtered=transactions.filter(t=>isRecentMatch(t,recentPeriod))
+    .sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+  count.textContent=filtered.length+" transaction"+(filtered.length===1?"":"s");
+
+  if(!filtered.length){
+    box.innerHTML='<div class="muted">No transactions for this period.</div>';
+    return;
+  }
+  box.innerHTML=filtered.slice(0,50).map(t=>`
+    <div class="row">
+      <div>
+        <b>${escapeHtml(t.vehicle?(t.vehicle+" • "+t.activity):(t.category||t.source||t.type))}</b>
+        <div class="muted">${escapeHtml(t.date)} ${t.paymentMethod?"• "+escapeHtml(t.paymentMethod):""}${t.difference!==""&&t.difference!=null?" • "+escapeHtml(t.difference)+" km":""}</div>
+        ${t.note?`<div class="transaction-note">📝 ${escapeHtml(t.note)}</div>`:""}
+      </div>
+      <div>
+        <div class="amount ${t.type==="Income"?"income":"expense"}">${t.type==="Income"?"+":"-"}${money(t.amount)}</div>
+        <button class="edit-btn" type="button" onclick="editTransaction('${escapeHtml(t.id)}')">Edit</button>
+      </div>
+    </div>`).join("");
+}
+
 function render(){
   let income=0,expense=0,vehicleExpense=0;
   transactions.forEach(t=>{
@@ -681,18 +856,7 @@ function render(){
   updateMaintenanceDashboard();
   renderDashboardCharts();
 
-  if(!transactions.length){recent.textContent="No transactions yet.";return}
-  recent.innerHTML=transactions.slice(0,15).map(t=>`
-    <div class="row">
-      <div>
-        <b>${escapeHtml(t.vehicle?(t.vehicle+" • "+t.activity):(t.category||t.source||t.type))}</b>
-        <div class="muted">${escapeHtml(t.date)} ${t.paymentMethod?"• "+escapeHtml(t.paymentMethod):""}${t.difference!==""&&t.difference!=null?" • "+escapeHtml(t.difference)+" km":""}</div>
-      </div>
-      <div>
-        <div class="amount ${t.type==="Income"?"income":"expense"}">${t.type==="Income"?"+":"-"}${money(t.amount)}</div>
-        <button class="edit-btn" type="button" onclick="editTransaction('${escapeHtml(t.id)}')">Edit</button>
-      </div>
-    </div>`).join("");
+  renderRecentTransactions();
 }
 
 
