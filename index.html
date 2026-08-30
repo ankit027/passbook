@@ -1,12 +1,41 @@
-from pathlib import Path
-
-src = Path("/mnt/data/index_vehicle_fixed.html")
-out = Path("/mnt/data/index_vehicle_maintenance.html")
-html = src.read_text(encoding="utf-8")
-
-# Add maintenance dashboard styles.
-style_marker = ".badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;font-size:11px;font-weight:bold}"
-style_add = style_marker + r'''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Passbook</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f4f6;color:#111827}
+header{background:#111827;color:white;padding:18px 16px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:24px} header p{margin:5px 0 0;color:#cbd5e1;font-size:13px}
+nav{display:flex;background:white;border-bottom:1px solid #ddd;position:sticky;top:76px;z-index:4;overflow:auto}
+nav button{min-width:100px;flex:1;padding:14px 5px;border:0;background:white;font-weight:bold;color:#64748b}
+nav button.active{color:#111827;border-bottom:3px solid #111827}
+main{max-width:900px;margin:auto;padding:16px}
+.card{background:white;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:0 2px 10px #0000000d}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{font-size:13px;font-weight:bold;display:block;margin-bottom:6px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:9px;font-size:15px;background:white}
+textarea{resize:vertical}
+.full{grid-column:1/-1}
+button.primary{width:100%;padding:13px;border:0;border-radius:9px;background:#111827;color:white;font-weight:bold;font-size:15px;margin-top:12px}
+button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;border-radius:8px;font-weight:bold;margin-top:10px}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{padding:15px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb}
+.stat small{color:#64748b}.stat strong{display:block;font-size:21px;margin-top:5px}
+.income{color:#15803d}.expense{color:#dc2626}.balance{color:#2563eb}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #eee}
+.row:last-child{border-bottom:0}
+.muted{color:#64748b;font-size:12px}
+.amount{font-weight:bold}
+.hidden{display:none!important}
+.status{font-size:13px;padding:9px;border-radius:8px;background:#f1f5f9;margin-top:10px}
+.hint{font-size:12px;color:#64748b;margin:5px 0 0}
+.vehicle-box{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-top:12px}
+.vehicle-box h3{margin:0 0 10px;font-size:16px}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;font-size:11px;font-weight:bold}
 .maintenance-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
 .maintenance-card{border:1px solid #e5e7eb;border-radius:12px;padding:14px;background:#fff}
 .maintenance-card h3{margin:0 0 10px;font-size:17px}
@@ -15,13 +44,36 @@ style_add = style_marker + r'''
 .maint-value{font-weight:bold;text-align:right}
 .maint-ok{color:#15803d}.maint-due{color:#dc2626}.maint-info{color:#2563eb}
 @media(max-width:600px){.maintenance-grid{grid-template-columns:1fr}}
-'''
-html = html.replace(style_marker, style_add)
 
-# Add maintenance section below overview card, before Recent Transactions.
-marker = '''  <div class="card">
-    <h2>Recent Transactions</h2>'''
-maintenance_section = r'''  <div class="card">
+@media(max-width:600px){.grid,.summary{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<header>
+  <h1>PASSBOOK</h1>
+  <p>Income • Expense • Vehicle Tracker</p>
+</header>
+
+<nav>
+  <button id="tabDashboard" class="active" onclick="showTab('dashboard')">Dashboard</button>
+  <button id="tabExpense" onclick="showTab('expense')">Expense</button>
+  <button id="tabIncome" onclick="showTab('income')">Income</button>
+  <button id="tabVehicle" onclick="showTab('vehicle')">Vehicle</button>
+  <button id="tabSettings" onclick="showTab('settings')">Sync</button>
+</nav>
+
+<main>
+<section id="dashboard">
+  <div class="card">
+    <h2>Overview</h2>
+    <div class="summary">
+      <div class="stat"><small>Income</small><strong class="income" id="totalIncome">₹0</strong></div>
+      <div class="stat"><small>Total Expense</small><strong class="expense" id="totalExpense">₹0</strong></div>
+      <div class="stat"><small>Balance</small><strong class="balance" id="balance">₹0</strong></div>
+    </div>
+    <div class="status" id="vehicleSummary">Vehicle expense: ₹0</div>
+  </div>
+  <div class="card">
     <h2>Vehicle Maintenance</h2>
     <p class="muted">Next target is calculated from the latest maintenance actual KM. Current KM comes from your latest petrol odometer reading.</p>
     <div class="maintenance-grid">
@@ -45,12 +97,279 @@ maintenance_section = r'''  <div class="card">
   </div>
 
   <div class="card">
-    <h2>Recent Transactions</h2>'''
-html = html.replace(marker, maintenance_section)
+    <h2>Recent Transactions</h2>
+    <div id="recent">No transactions yet.</div>
+  </div>
+</section>
 
-# Insert maintenance calculation functions before render().
-render_marker = "function render(){"
-maintenance_js = r'''
+<section id="expense" class="hidden">
+  <div class="card">
+    <h2>Add Expense</h2>
+    <form id="expenseForm">
+      <div class="grid">
+        <div><label>Date</label><input id="expenseDate" type="date" required></div>
+        <div><label>Amount (₹)</label><input id="expenseAmount" type="number" min="0" step="0.01" required></div>
+        <div>
+          <label>Category</label>
+          <select id="expenseCategory" required>
+            <option value="">Select category</option>
+            <option>Food</option><option>Travel</option><option>Shopping</option>
+            <option>Fuel</option><option>Bills</option><option>Entertainment</option>
+            <option>Vehicle</option><option>Health</option><option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label>Payment Method</label>
+          <select id="expensePayment" required>
+            <option value="">Select payment method</option>
+            <option>HDFC CC UPI</option><option>Kotak UPI</option>
+            <option>Jio Payments Bank UPI</option><option>HDFC Bank UPI</option>
+            <option>HDFC Bank</option><option>Kotak Bank</option>
+            <option>Amazon CC</option><option>Cash</option>
+          </select>
+        </div>
+        <div class="full"><label>Note</label><textarea id="expenseNote" rows="2" placeholder="Optional"></textarea></div>
+      </div>
+      <button class="primary" type="submit">Save Expense</button>
+    </form>
+  </div>
+</section>
+
+<section id="income" class="hidden">
+  <div class="card">
+    <h2>Add Income</h2>
+    <form id="incomeForm">
+      <div class="grid">
+        <div><label>Date</label><input id="incomeDate" type="date" required></div>
+        <div><label>Amount (₹)</label><input id="incomeAmount" type="number" min="0" step="0.01" required></div>
+        <div>
+          <label>Source</label>
+          <select id="incomeSource" required>
+            <option value="">Select source</option><option>Salary</option>
+            <option>Cashback</option><option>Cash</option><option>Other</option>
+          </select>
+        </div>
+        <div class="full"><label>Note</label><textarea id="incomeNote" rows="2" placeholder="Optional"></textarea></div>
+      </div>
+      <button class="primary" type="submit">Save Income</button>
+    </form>
+  </div>
+</section>
+
+<section id="vehicle" class="hidden">
+  <div class="card">
+    <h2>Vehicle Tracking</h2>
+    <p class="muted">Petrol, KM, service and oil/coolant costs are saved as expenses and included in Total Expense.</p>
+
+    <div class="vehicle-box">
+      <h3>⛽ Petrol</h3>
+      <form id="petrolForm">
+        <div class="grid">
+          <div>
+            <label>Vehicle</label>
+            <select id="petrolVehicle" required>
+              <option>Bike</option><option>Car</option>
+            </select>
+          </div>
+          <div><label>Date</label><input id="petrolDate" type="date" required></div>
+          <div><label>Petrol Amount (₹)</label><input id="petrolAmount" type="number" min="0" step="0.01" required></div>
+          <div>
+            <label>Odometer (Km)</label>
+            <input id="petrolOdo" type="number" min="0" step="1" required>
+            <div class="hint" id="lastOdoHint">Previous KM: —</div>
+          </div>
+          <div class="full">
+            <label>KM Difference</label>
+            <input id="petrolDifference" type="number" readonly placeholder="Automatic">
+          </div>
+          <div class="full"><label>Note</label><textarea id="petrolNote" rows="2" placeholder="Optional"></textarea></div>
+        </div>
+        <button class="primary" type="submit">Save Petrol Expense</button>
+      </form>
+    </div>
+
+    <div class="vehicle-box">
+      <h3>🔧 Service / Oil / Coolant</h3>
+      <form id="serviceForm">
+        <div class="grid">
+          <div>
+            <label>Vehicle</label>
+            <select id="serviceVehicle" required>
+              <option>Bike</option><option>Car</option>
+            </select>
+          </div>
+          <div><label>Date</label><input id="serviceDate" type="date" required></div>
+          <div>
+            <label>Activity</label>
+            <select id="serviceActivity" required>
+              <option>Service</option><option>Oil Change</option><option>Coolant Change</option>
+            </select>
+          </div>
+          <div><label>Amount (₹)</label><input id="serviceAmount" type="number" min="0" step="0.01" required></div>
+          <div>
+            <label>Planned Odometer (Km)</label>
+            <input id="plannedOdo" type="number" min="0" step="1" required>
+            <div class="hint" id="servicePlanHint">Bike oil: every 3,000 km • Car oil/coolant: every 8,000 km</div>
+          </div>
+          <div>
+            <label>Actual Odometer (Km)</label>
+            <input id="actualOdo" type="number" min="0" step="1" required>
+          </div>
+          <div class="full">
+            <label>Actual − Planned (Km)</label>
+            <input id="maintenanceDifference" type="number" readonly placeholder="Automatic">
+          </div>
+          <div class="full"><label>Note</label><textarea id="serviceNote" rows="2" placeholder="Optional"></textarea></div>
+        </div>
+        <button class="primary" type="submit">Save Vehicle Service Expense</button>
+      </form>
+    </div>
+
+    <div class="status">
+      <b>Reminder:</b> Bike oil change target = every 3,000 km. Car oil/coolant target = every 8,000 km.
+      Enter the planned KM when you actually plan the next service.
+    </div>
+  </div>
+</section>
+
+<section id="settings" class="hidden">
+  <div class="card">
+    <h2>Google Sheet Sync</h2>
+    <p class="muted">Your Google Sheet is the cloud backup. The URL is stored in this browser.</p>
+    <label>Apps Script Web App URL</label>
+    <input id="scriptUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+    <button class="primary" onclick="saveUrl()">Save URL</button>
+    <button class="secondary" onclick="loadCloud()">Load Cloud Data</button>
+    <div id="syncStatus" class="status">Not synced yet.</div>
+  </div>
+</section>
+</main>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBGuTvWbwelZuSyF8XmBZYOQILuJ3ANjtWKrY3wWw-4k-iQW9w5qJNVzDF_e7HZtEF/exec";
+const KEY = "passbook_transactions_v2";
+const URLKEY = "passbook_script_url";
+let transactions = JSON.parse(localStorage.getItem(KEY) || "[]");
+
+function today(){ return new Date().toISOString().slice(0,10); }
+function money(n){ return "₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2}); }
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
+function saveLocal(){localStorage.setItem(KEY,JSON.stringify(transactions));}
+function getUrl(){return localStorage.getItem(URLKEY)||SCRIPT_URL;}
+function setStatus(s){document.getElementById("syncStatus").textContent=s;}
+
+["expenseDate","incomeDate","petrolDate","serviceDate"].forEach(id=>document.getElementById(id).value=today());
+
+function showTab(tab){
+  ["dashboard","expense","income","vehicle","settings"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+  document.getElementById(tab).classList.remove("hidden");
+  ["Dashboard","Expense","Income","Vehicle","Settings"].forEach(x=>document.getElementById("tab"+x).classList.remove("active"));
+  document.getElementById("tab"+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add("active");
+  render();
+  updateOdoHints();
+}
+
+function addTransaction(t){
+  transactions.unshift(t);
+  saveLocal();
+  render();
+  syncOne(t);
+}
+
+document.getElementById("expenseForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  addTransaction({
+    id:"tx_"+Date.now()+"_"+Math.random().toString(36).slice(2,8),
+    date:expenseDate.value,type:"Expense",category:expenseCategory.value,source:"",
+    paymentMethod:expensePayment.value,amount:Number(expenseAmount.value),note:expenseNote.value
+  });
+  e.target.reset(); expenseDate.value=today(); alert("Expense saved");
+});
+
+document.getElementById("incomeForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  addTransaction({
+    id:"tx_"+Date.now()+"_"+Math.random().toString(36).slice(2,8),
+    date:incomeDate.value,type:"Income",category:"",source:incomeSource.value,
+    paymentMethod:"",amount:Number(incomeAmount.value),note:incomeNote.value
+  });
+  e.target.reset(); incomeDate.value=today(); alert("Income saved");
+});
+
+function getVehicleRecords(vehicle,activity){
+  return transactions.filter(t=>t.vehicle===vehicle && (!activity || t.activity===activity))
+    .sort((a,b)=>Number(a.odometer||a.actualOdo||0)-Number(b.odometer||b.actualOdo||0));
+}
+
+function updateOdoHints(){
+  const vehicle=petrolVehicle.value;
+  const records=getVehicleRecords(vehicle).filter(t=>t.odometer!=null && t.odometer!=="");
+  const last=records.length?records[records.length-1].odometer:null;
+  lastOdoHint.textContent=last!==null?("Previous KM: "+last):"Previous KM: —";
+
+  const pv=serviceVehicle.value;
+  const lastService=getVehicleRecords(pv).filter(t=>t.actualOdo!=null && t.actualOdo!=="");
+  const actual=lastService.length?lastService[lastService.length-1].actualOdo:null;
+  const interval=pv==="Bike"?3000:8000;
+  servicePlanHint.textContent=(pv==="Bike"?"Bike":"Car")+" target: every "+interval.toLocaleString()+" km"+
+    (actual!==null?" • Last actual KM: "+actual:"");
+}
+
+petrolVehicle.addEventListener("change",updateOdoHints);
+serviceVehicle.addEventListener("change",updateOdoHints);
+
+petrolOdo.addEventListener("input",()=>{
+  const vehicle=petrolVehicle.value;
+  const records=getVehicleRecords(vehicle).filter(t=>t.odometer!=null && t.odometer!=="");
+  const last=records.length?Number(records[records.length-1].odometer):null;
+  const current=Number(petrolOdo.value);
+  petrolDifference.value=(last!==null && current>=last)?current-last:"";
+});
+
+actualOdo.addEventListener("input",()=>{
+  const p=Number(plannedOdo.value), a=Number(actualOdo.value);
+  maintenanceDifference.value=(Number.isFinite(p)&&Number.isFinite(a))?a-p:"";
+});
+plannedOdo.addEventListener("input",()=>{
+  const p=Number(plannedOdo.value), a=Number(actualOdo.value);
+  maintenanceDifference.value=(Number.isFinite(p)&&Number.isFinite(a))?a-p:"";
+});
+
+document.getElementById("petrolForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  const vehicle=petrolVehicle.value;
+  const odo=Number(petrolOdo.value);
+  const records=getVehicleRecords(vehicle).filter(t=>t.odometer!=null && t.odometer!=="");
+  const last=records.length?Number(records[records.length-1].odometer):null;
+  if(last!==null && odo<last){alert("Odometer cannot be lower than the previous reading ("+last+" km).");return;}
+  addTransaction({
+    id:"tx_"+Date.now()+"_"+Math.random().toString(36).slice(2,8),
+    date:petrolDate.value,type:"Expense",category:"Vehicle",source:"",
+    paymentMethod:"Cash",amount:Number(petrolAmount.value),note:petrolNote.value,
+    vehicle:vehicle,activity:"Petrol",odometer:odo,
+    difference:last!==null?odo-last:""
+  });
+  e.target.reset(); petrolDate.value=today(); petrolVehicle.value=vehicle;
+  petrolDifference.value=""; updateOdoHints(); alert(vehicle+" petrol saved");
+});
+
+document.getElementById("serviceForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  const vehicle=serviceVehicle.value, activity=serviceActivity.value;
+  const planned=Number(plannedOdo.value), actual=Number(actualOdo.value);
+  if(actual<0||planned<0){alert("KM cannot be negative.");return;}
+  addTransaction({
+    id:"tx_"+Date.now()+"_"+Math.random().toString(36).slice(2,8),
+    date:serviceDate.value,type:"Expense",category:"Vehicle",source:"",
+    paymentMethod:"Cash",amount:Number(serviceAmount.value),note:serviceNote.value,
+    vehicle:vehicle,activity:activity,
+    plannedOdo:planned,actualOdo:actual,maintenanceDifference:actual-planned
+  });
+  e.target.reset(); serviceDate.value=today(); serviceVehicle.value=vehicle;
+  maintenanceDifference.value=""; updateOdoHints(); alert(vehicle+" "+activity+" saved");
+});
+
+
 function latestVehicleOdo(vehicle){
   const records=transactions
     .filter(t=>t.vehicle===vehicle && t.odometer!=="" && t.odometer!=null)
@@ -120,16 +439,102 @@ function updateMaintenanceDashboard(){
   });
 }
 
-'''
-html = html.replace(render_marker, maintenance_js + render_marker)
+function render(){
+  let income=0,expense=0,vehicleExpense=0;
+  transactions.forEach(t=>{
+    const amount=Number(t.amount||0);
+    if(t.type==="Income") income+=amount;
+    else {expense+=amount;if(t.vehicle)vehicleExpense+=amount;}
+  });
+  totalIncome.textContent=money(income);
+  totalExpense.textContent=money(expense);
+  balance.textContent=money(income-expense);
+  vehicleSummary.textContent="Vehicle expense: "+money(vehicleExpense);
+  updateMaintenanceDashboard();
 
-# Ensure render updates maintenance dashboard.
-html = html.replace("  vehicleSummary.textContent=\"Vehicle expense: \"+money(vehicleExpense);\n",
-                    "  vehicleSummary.textContent=\"Vehicle expense: \"+money(vehicleExpense);\n  updateMaintenanceDashboard();\n")
+  if(!transactions.length){recent.textContent="No transactions yet.";return}
+  recent.innerHTML=transactions.slice(0,15).map(t=>`
+    <div class="row">
+      <div>
+        <b>${escapeHtml(t.vehicle?(t.vehicle+" • "+t.activity):(t.category||t.source||t.type))}</b>
+        <div class="muted">${escapeHtml(t.date)} ${t.paymentMethod?"• "+escapeHtml(t.paymentMethod):""}${t.difference!==""&&t.difference!=null?" • "+escapeHtml(t.difference)+" km":""}</div>
+      </div>
+      <div class="amount ${t.type==="Income"?"income":"expense"}">${t.type==="Income"?"+":"-"}${money(t.amount)}</div>
+    </div>`).join("");
+}
 
-# Also refresh after cloud data is loaded (render already does, but this makes it explicit and robust).
-html = html.replace("      render();\n      updateOdoHints();\n      setStatus(\"Cloud data loaded successfully.",
-                    "      render();\n      updateOdoHints();\n      updateMaintenanceDashboard();\n      setStatus(\"Cloud data loaded successfully.")
+async function syncOne(t){
+  try{
+    await fetch(getUrl(),{
+      method:"POST",mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify(t)
+    });
+    setStatus("Saved locally and sent to Google Sheet.");
+  }catch(err){
+    setStatus("Saved locally. Sheet sync failed; try Load Cloud.");
+  }
+}
 
-out.write_text(html, encoding="utf-8")
-print(f"Created {out}")
+function saveUrl(){
+  const url=scriptUrl.value.trim();
+  if(!url){alert("Enter Apps Script URL");return;}
+  localStorage.setItem(URLKEY,url);setStatus("URL saved.");
+}
+
+function loadCloud(){
+  const url=getUrl(), callback="passbookCallback_"+Date.now();
+  setStatus("Loading cloud data...");
+
+  window[callback]=function(data){
+    try{
+      if(!Array.isArray(data)) throw new Error("Invalid response");
+
+      const headers=data[0]||[], rows=data.slice(1), idx={};
+      headers.forEach((h,i)=>idx[h]=i);
+
+      const cloud=rows.filter(r=>r[idx.ID]).map(r=>({
+        id:r[idx.ID], date:r[idx.Date]||"", type:r[idx.Type]||"",
+        category:r[idx.Category]||"", source:r[idx.Source]||"",
+        paymentMethod:r[idx["Payment Method"]]||"",
+        amount:Number(r[idx.Amount]||0), note:r[idx.Note]||"",
+        vehicle:r[idx.Vehicle]||"", activity:r[idx.Activity]||"",
+        odometer:r[idx.Odometer]??"",
+        difference:r[idx["Difference Km"]]??"",
+        plannedOdo:r[idx["Planned Odometer"]]??"",
+        actualOdo:r[idx["Actual Odometer"]]??"",
+        maintenanceDifference:r[idx["Actual-Planned Difference"]]??""
+      }));
+
+      // Cloud is authoritative when loading. This prevents duplicate records.
+      transactions=cloud.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+      saveLocal();
+      render();
+      updateOdoHints();
+      updateMaintenanceDashboard();
+      setStatus("Cloud data loaded successfully. "+cloud.length+" records found.");
+    }catch(e){
+      setStatus("Cloud data received, but could not be read.");
+    }
+
+    delete window[callback];
+    script.remove();
+  };
+
+  const script=document.createElement("script");
+  script.src=url+(url.includes("?")?"&":"?")+"callback="+encodeURIComponent(callback)+"&t="+Date.now();
+
+  script.onerror=function(){
+    setStatus("Could not connect to Apps Script. Check deployment access and URL.");
+    delete window[callback];
+    script.remove();
+  };
+
+  document.body.appendChild(script);
+}
+
+scriptUrl.value=localStorage.getItem(URLKEY)||SCRIPT_URL;
+render();updateOdoHints();
+</script>
+</body>
+</html>
