@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Passbook</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f4f6;color:#111827}
+header{background:#111827;color:white;padding:18px 16px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:24px} header p{margin:5px 0 0;color:#cbd5e1;font-size:13px}
+nav{display:flex;background:white;border-bottom:1px solid #ddd;position:sticky;top:76px;z-index:4}
+nav button{flex:1;padding:14px 5px;border:0;background:white;font-weight:bold;color:#64748b}
+nav button.active{color:#111827;border-bottom:3px solid #111827}
+main{max-width:850px;margin:auto;padding:16px}
+.card{background:white;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:0 2px 10px #0000000d}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{font-size:13px;font-weight:bold;display:block;margin-bottom:6px}
+input,select,textarea{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:9px;font-size:15px;background:white}
+textarea{resize:vertical}
+.full{grid-column:1/-1}
+button.primary{width:100%;padding:13px;border:0;border-radius:9px;background:#111827;color:white;font-weight:bold;font-size:15px;margin-top:12px}
+button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;border-radius:8px;font-weight:bold}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{padding:15px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb}
+.stat small{color:#64748b}.stat strong{display:block;font-size:21px;margin-top:5px}
+.income{color:#15803d}.expense{color:#dc2626}.balance{color:#2563eb}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #eee}
+.row:last-child{border-bottom:0}
+.muted{color:#64748b;font-size:12px}
+.amount{font-weight:bold}
+.hidden{display:none!important}
+.status{font-size:13px;padding:9px;border-radius:8px;background:#f1f5f9;margin-top:10px}
+@media(max-width:600px){.grid,.summary{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<header>
+  <h1>PASSBOOK</h1>
+  <p>Simple Income & Expense Tracker</p>
+</header>
+
+<nav>
+  <button id="tabDashboard" class="active" onclick="showTab('dashboard')">Dashboard</button>
+  <button id="tabExpense" onclick="showTab('expense')">Expense</button>
+  <button id="tabIncome" onclick="showTab('income')">Income</button>
+  <button id="tabSettings" onclick="showTab('settings')">Sync</button>
+</nav>
+
+<main>
+<section id="dashboard">
+  <div class="card">
+    <h2>Overview</h2>
+    <div class="summary">
+      <div class="stat"><small>Income</small><strong class="income" id="totalIncome">₹0</strong></div>
+      <div class="stat"><small>Expense</small><strong class="expense" id="totalExpense">₹0</strong></div>
+      <div class="stat"><small>Balance</small><strong class="balance" id="balance">₹0</strong></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Recent Transactions</h2>
+    <div id="recent">No transactions yet.</div>
+  </div>
+</section>
+
+<section id="expense" class="hidden">
+  <div class="card">
+    <h2>Add Expense</h2>
+    <form id="expenseForm">
+      <div class="grid">
+        <div>
+          <label>Date</label>
+          <input id="expenseDate" type="date" required>
+        </div>
+        <div>
+          <label>Amount (₹)</label>
+          <input id="expenseAmount" type="number" min="0" step="0.01" required>
+        </div>
+        <div>
+          <label>Category</label>
+          <select id="expenseCategory" required>
+            <option value="">Select category</option>
+            <option>Food</option><option>Travel</option><option>Shopping</option>
+            <option>Fuel</option><option>Bills</option><option>Entertainment</option>
+            <option>Vehicle</option><option>Health</option><option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label>Payment Method</label>
+          <select id="expensePayment" required>
+            <option value="">Select payment method</option>
+            <option>HDFC CC UPI</option>
+            <option>Kotak UPI</option>
+            <option>Jio Payments Bank UPI</option>
+            <option>HDFC Bank UPI</option>
+            <option>HDFC Bank</option>
+            <option>Kotak Bank</option>
+            <option>Amazon CC</option>
+            <option>Cash</option>
+          </select>
+        </div>
+        <div class="full">
+          <label>Note</label>
+          <textarea id="expenseNote" rows="2" placeholder="Optional"></textarea>
+        </div>
+      </div>
+      <button class="primary" type="submit">Save Expense</button>
+    </form>
+  </div>
+</section>
+
+<section id="income" class="hidden">
+  <div class="card">
+    <h2>Add Income</h2>
+    <form id="incomeForm">
+      <div class="grid">
+        <div>
+          <label>Date</label>
+          <input id="incomeDate" type="date" required>
+        </div>
+        <div>
+          <label>Amount (₹)</label>
+          <input id="incomeAmount" type="number" min="0" step="0.01" required>
+        </div>
+        <div>
+          <label>Source</label>
+          <select id="incomeSource" required>
+            <option value="">Select source</option>
+            <option>Salary</option>
+            <option>Cashback</option>
+            <option>Cash</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="full">
+          <label>Note</label>
+          <textarea id="incomeNote" rows="2" placeholder="Optional"></textarea>
+        </div>
+      </div>
+      <button class="primary" type="submit">Save Income</button>
+    </form>
+  </div>
+</section>
+
+<section id="settings" class="hidden">
+  <div class="card">
+    <h2>Google Sheet Sync</h2>
+    <p class="muted">Your Google Sheet is the cloud backup. The URL is stored in this browser.</p>
+    <label>Apps Script Web App URL</label>
+    <input id="scriptUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+    <button class="primary" onclick="saveUrl()">Save URL</button>
+    <button class="secondary" style="margin-top:10px" onclick="loadCloud()">Load Cloud Data</button>
+    <div id="syncStatus" class="status">Not synced yet.</div>
+  </div>
+</section>
+</main>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBGuTvWbwelZuSyF8XmBZYOQILuJ3ANjtWKrY3wWw-4k-iQW9w5qJNVzDF_e7HZtEF/exec";
+const KEY = "passbook_transactions_v1";
+const URLKEY = "passbook_script_url";
+let transactions = JSON.parse(localStorage.getItem(KEY) || "[]");
+
+function today(){
+  return new Date().toISOString().slice(0,10);
+}
+document.getElementById("expenseDate").value=today();
+document.getElementById("incomeDate").value=today();
+
+function money(n){return "₹"+Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2})}
+
+function showTab(tab){
+  ["dashboard","expense","income","settings"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+  document.getElementById(tab).classList.remove("hidden");
+  ["Dashboard","Expense","Income","Settings"].forEach(x=>document.getElementById("tab"+x).classList.remove("active"));
+  document.getElementById("tab"+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add("active");
+  render();
+}
+
+function saveLocal(){
+  localStorage.setItem(KEY,JSON.stringify(transactions));
+}
+
+function addTransaction(t){
+  transactions.unshift(t);
+  saveLocal();
+  render();
+  syncOne(t);
+}
+
+document.getElementById("expenseForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  addTransaction({
+    id:"tx_"+Date.now()+"_"+Math.random().toString(36).slice(2,8),
+    date:document.getElementById("expenseDate").value,
+    type:"Expense",
+    category:document.getElementById("expenseCategory").value,
+    source:"",
+    paymentMethod:document.getElementById("expensePayment").value,
+    amount:Number(document.getElementById("expenseAmount").value),
+    note:document.getElementById("expenseNote").value
+  });
+  e.target.reset();
+  document.getElementById("expenseDate").value=today();
+  alert("Expense saved");
+});
+
+document.getElementById("incomeForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  addTransaction({
+    id:"tx_"+Date.now()+"_"+Math.random().toString(36).slice(2,8),
+    date:document.getElementById("incomeDate").value,
+    type:"Income",
+    category:"",
+    source:document.getElementById("incomeSource").value,
+    paymentMethod:"",
+    amount:Number(document.getElementById("incomeAmount").value),
+    note:document.getElementById("incomeNote").value
+  });
+  e.target.reset();
+  document.getElementById("incomeDate").value=today();
+  alert("Income saved");
+});
+
+function render(){
+  let income=0,expense=0;
+  transactions.forEach(t=>{
+    if(t.type==="Income") income+=Number(t.amount||0);
+    else expense+=Number(t.amount||0);
+  });
+  document.getElementById("totalIncome").textContent=money(income);
+  document.getElementById("totalExpense").textContent=money(expense);
+  document.getElementById("balance").textContent=money(income-expense);
+
+  const recent=document.getElementById("recent");
+  if(!transactions.length){recent.textContent="No transactions yet.";return}
+  recent.innerHTML=transactions.slice(0,10).map(t=>`
+    <div class="row">
+      <div>
+        <b>${escapeHtml(t.category||t.source||t.type)}</b>
+        <div class="muted">${escapeHtml(t.date)} ${t.paymentMethod?"• "+escapeHtml(t.paymentMethod):""}</div>
+      </div>
+      <div class="amount ${t.type==="Income"?"income":"expense"}">${t.type==="Income"?"+":"-"}${money(t.amount)}</div>
+    </div>`).join("");
+}
+
+function escapeHtml(s){
+  return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+
+function saveUrl(){
+  const url=document.getElementById("scriptUrl").value.trim();
+  if(!url){alert("Enter Apps Script URL");return}
+  localStorage.setItem(URLKEY,url);
+  setStatus("URL saved.");
+}
+
+function getUrl(){return localStorage.getItem(URLKEY)||SCRIPT_URL}
+
+function setStatus(s){
+  document.getElementById("syncStatus").textContent=s;
+}
+
+async function syncOne(t){
+  const url=getUrl();
+  try{
+    await fetch(url,{
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify(t)
+    });
+    setStatus("Saved locally and sent to Google Sheet.");
+  }catch(err){
+    setStatus("Saved locally. Google Sheet sync failed; try Load Cloud later.");
+  }
+}
+
+function loadCloud(){
+  const url=getUrl();
+  setStatus("Loading cloud data...");
+  const callback="passbookCallback_"+Date.now();
+  window[callback]=function(data){
+    try{
+      if(!Array.isArray(data)){throw new Error("Invalid cloud response")}
+      const headers=data[0]||[];
+      const rows=data.slice(1);
+      const idx={};
+      headers.forEach((h,i)=>idx[h]=i);
+      const cloud=rows.filter(r=>r[idx.ID]).map(r=>({
+        id:r[idx.ID],
+        date:r[idx.Date]||"",
+        type:r[idx.Type]||"",
+        category:r[idx.Category]||"",
+        source:r[idx.Source]||"",
+        paymentMethod:r[idx["Payment Method"]]||"",
+        amount:Number(r[idx.Amount]||0),
+        note:r[idx.Note]||""
+      }));
+      const map={};
+      transactions.forEach(t=>map[t.id]=t);
+      cloud.forEach(t=>map[t.id]=t);
+      transactions=Object.values(map).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+      saveLocal();
+      render();
+      setStatus("Cloud data loaded. "+cloud.length+" records found.");
+    }catch(e){setStatus("Could not read cloud data.");}
+    delete window[callback];
+    script.remove();
+  };
+  const script=document.createElement("script");
+  script.src=url+(url.includes("?")?"&":"?")+"callback="+callback+"&t="+Date.now();
+  script.onerror=function(){
+    setStatus("Could not connect to Apps Script.");
+    delete window[callback];
+    script.remove();
+  };
+  document.body.appendChild(script);
+}
+
+document.getElementById("scriptUrl").value=localStorage.getItem(URLKEY)||SCRIPT_URL;
+render();
+</script>
+</body>
+</html>
