@@ -880,9 +880,28 @@ let recentPeriod = "week";
 
 function localDateOnly(s){
   if(!s)return null;
-  const p=String(s).split("-").map(Number);
-  if(p.length<3 || p.some(Number.isNaN))return null;
-  return new Date(p[0],p[1]-1,p[2]);
+  if(s instanceof Date && !isNaN(s.getTime()))
+    return new Date(s.getFullYear(),s.getMonth(),s.getDate());
+
+  const v=String(s).trim();
+
+  // ISO date/date-time: 2026-08-30 or 2026-08-30T...
+  let m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m)return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+
+  // Slash/dot dates: 8/30/2026 or 30/8/2026
+  m=v.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
+  if(m){
+    const a=Number(m[1]), b=Number(m[2]), y=Number(m[3]);
+    if(a>12)return new Date(y,b-1,a);
+    if(b>12)return new Date(y,a-1,b);
+    return new Date(y,a-1,b);
+  }
+
+  const parsed=new Date(v);
+  return isNaN(parsed.getTime())
+    ? null
+    : new Date(parsed.getFullYear(),parsed.getMonth(),parsed.getDate());
 }
 function startOfLocalWeek(d){
   const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());
@@ -893,13 +912,23 @@ function startOfLocalWeek(d){
 }
 function isRecentMatch(t,period){
   if(period==="all")return true;
-  const d=localDateOnly(t.date); if(!d)return false;
+
+  const d=localDateOnly(t.date);
+  if(!d)return false;
+
   const now=new Date();
+  const todayOnly=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+
   if(period==="month"){
-    return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
+    return d.getFullYear()===todayOnly.getFullYear()
+      && d.getMonth()===todayOnly.getMonth();
   }
-  const start=startOfLocalWeek(now);
-  const end=new Date(start); end.setDate(start.getDate()+7);
+
+  // This Week = Monday through Sunday of the current week.
+  const start=startOfLocalWeek(todayOnly);
+  const end=new Date(start);
+  end.setDate(start.getDate()+7);
+
   return d>=start && d<end;
 }
 function setRecentPeriod(period){
