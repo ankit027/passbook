@@ -219,134 +219,84 @@ html.dark td{color:#e5e7eb !important;border-color:#334155 !important}
 .dark .recent-count,.dark .transaction-note{color:#94a3b8}
 
 
-.vehicle-kpis{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;padding:0!important;background:transparent!important}
-.vehicle-kpi{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:10px;background:#eef3f9;color:#64748b;font-size:12px}
-.vehicle-kpi b{font-size:15px;color:#172033}
-.dark .vehicle-kpi{background:#1e293b;color:#94a3b8}
-.dark .vehicle-kpi b{color:#e5e7eb}
-@media(max-width:600px){.vehicle-kpis{grid-template-columns:1fr}}
+
+/* Vehicle expense split */
+.vehicle-summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
+.vehicle-summary-card{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;background:#f1f5f9;color:#475569;font-size:13px}
+.vehicle-summary-card strong{color:#111827;font-size:15px}
+@media(max-width:600px){.vehicle-summary-grid{grid-template-columns:1fr}}
+
+/* Dark mode - keep the existing design, but make ALL dashboard elements readable */
+html.dark body{background:#0b1220 !important;color:#e5e7eb !important}
+html.dark .stat{background:#172238 !important;border-color:#334155 !important;color:#e5e7eb !important}
+html.dark .stat small{color:#94a3b8 !important}
+html.dark .stat strong{color:#f8fafc !important}
+html.dark .status{background:#1e293b !important;color:#cbd5e1 !important;border:1px solid #334155 !important}
+html.dark .vehicle-summary-card{background:#1e293b !important;color:#cbd5e1 !important;border:1px solid #334155 !important}
+html.dark .vehicle-summary-card strong{color:#f8fafc !important}
+html.dark .vehicle-box{background:#111827 !important;border-color:#334155 !important;color:#e5e7eb !important}
+html.dark .maintenance-card{background:#172238 !important;border-color:#334155 !important;color:#e5e7eb !important}
+html.dark .maint-line{border-color:#334155 !important}
+html.dark .row{border-color:#334155 !important}
+html.dark .muted,.dark .hint{color:#94a3b8 !important}
+html.dark .chart-card{color:#e5e7eb !important}
+html.dark .chart-card h3{color:#f8fafc !important}
+html.dark .empty-chart{color:#94a3b8 !important}
+html.dark .bar-chart{border-color:#475569 !important}
+html.dark .legend{color:#cbd5e1 !important}
+html.dark .legend-row{color:#cbd5e1 !important}
+html.dark .recent-filter{background:#1e293b !important;color:#f8fafc !important;border-color:#475569 !important}
+html.dark .recent-count,html.dark .transaction-note{color:#94a3b8 !important}
 
 
-/* FINAL DARK MODE FIX — presentation only */
-html.dark,
-html.dark body {
-  background:#0b1220 !important;
-  color:#e5e7eb !important;
+/* FINAL DARK MODE PATCH — presentation only */
+html.dark .maintenance-card,
+html.dark .maintenance-grid .maintenance-card {
+  background: #172238 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
 }
-html.dark header {
-  background:#0b1220 !important;
-  color:#f8fafc !important;
-  border-bottom:1px solid #243047 !important;
+html.dark .maintenance-card h3,
+html.dark .maintenance-card span,
+html.dark .maintenance-card .maint-value,
+html.dark .maintenance-card .maint-line {
+  color: #f8fafc !important;
 }
-html.dark header h1 { color:#f8fafc !important; }
-html.dark header p { color:#94a3b8 !important; }
-
-html.dark nav {
-  background:#111827 !important;
-  border-bottom:1px solid #334155 !important;
+html.dark .maintenance-card .maint-line {
+  border-bottom-color: #334155 !important;
 }
-html.dark nav button {
-  background:#111827 !important;
-  color:#94a3b8 !important;
+html.dark .maintenance-card .maint-info {
+  color: #60a5fa !important;
 }
-html.dark nav button.active {
-  background:#111827 !important;
-  color:#f8fafc !important;
-  border-bottom-color:#60a5fa !important;
+html.dark .maintenance-card .maint-ok {
+  color: #22c55e !important;
 }
-
-html.dark main { background:#0b1220 !important; }
-html.dark .card,
-html.dark .chart-card,
-html.dark .edit-box {
-  background:#111827 !important;
-  color:#e5e7eb !important;
-  border-color:#263449 !important;
-  box-shadow:0 2px 12px rgba(0,0,0,.25) !important;
+html.dark .maintenance-card .maint-due {
+  color: #ef4444 !important;
 }
-html.dark .card h2,
-html.dark .chart-card h3 { color:#f8fafc !important; }
-html.dark .chart-sub,
-html.dark .muted,
-html.dark label { color:#94a3b8 !important; }
-
-html.dark .stat {
-  background:#1e293b !important;
-  border-color:#334155 !important;
+html.dark .vehicle-summary-card,
+html.dark .vehicle-summary-card strong {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
 }
-html.dark .stat small { color:#94a3b8 !important; }
-html.dark .stat strong { color:#f8fafc !important; }
-html.dark .stat strong.income { color:#22c55e !important; }
-html.dark .stat strong.expense { color:#ef4444 !important; }
-html.dark .stat strong.balance { color:#60a5fa !important; }
-
-html.dark .kpi-mini div {
-  background:#18243a !important;
-  border-color:#334155 !important;
-  color:#e5e7eb !important;
+html.dark .vehicle-box {
+  background: #111827 !important;
+  color: #e5e7eb !important;
+  border-color: #334155 !important;
 }
-html.dark .kpi-mini small { color:#94a3b8 !important; }
-html.dark .kpi-mini b { color:#f8fafc !important; }
-
-html.dark .vehicle-kpis {
-  background:transparent !important;
+html.dark .vehicle-box h3,
+html.dark .vehicle-box label,
+html.dark .vehicle-box .hint,
+html.dark .vehicle-box .muted {
+  color: #e5e7eb !important;
 }
-html.dark .vehicle-kpi {
-  background:#18243a !important;
-  border:1px solid #334155 !important;
-  color:#cbd5e1 !important;
-}
-html.dark .vehicle-kpi span { color:#cbd5e1 !important; }
-html.dark .vehicle-kpi b { color:#f8fafc !important; }
-
-html.dark .status {
-  background:#18243a !important;
-  color:#cbd5e1 !important;
-  border-color:#334155 !important;
-}
-html.dark .refresh-pill {
-  background:#1e293b !important;
-  color:#cbd5e1 !important;
-}
-html.dark button.secondary {
-  background:#1e293b !important;
-  color:#f8fafc !important;
-  border-color:#475569 !important;
-}
-html.dark .theme-toggle {
-  background:#1e293b !important;
-  color:#f8fafc !important;
-  border-color:#475569 !important;
-}
-
-html.dark input,
-html.dark select,
-html.dark textarea,
-html.dark .category-dropdown {
-  background:#0f172a !important;
-  color:#f8fafc !important;
-  border-color:#475569 !important;
-}
-html.dark input::placeholder,
-html.dark textarea::placeholder { color:#64748b !important; }
-
-html.dark .month-chip {
-  background:#1e293b !important;
-  color:#e5e7eb !important;
-  border-color:#475569 !important;
-}
-html.dark .month-chip.active {
-  background:#2563eb !important;
-  color:#fff !important;
-  border-color:#2563eb !important;
-}
-html.dark .category-slicer-label { color:#cbd5e1 !important; }
-
-html.dark .row { border-bottom-color:#263449 !important; }
-html.dark .transaction-note { color:#94a3b8 !important; }
-
-@media(max-width:600px){
-  .vehicle-kpis { grid-template-columns:1fr !important; }
+html.dark .vehicle-box input,
+html.dark .vehicle-box select,
+html.dark .vehicle-box textarea {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
 }
 
 </style>
@@ -374,10 +324,16 @@ html.dark .transaction-note { color:#94a3b8 !important; }
       <div class="stat"><small>Total Expense</small><strong class="expense" id="totalExpense">₹0</strong></div>
       <div class="stat"><small>Balance</small><strong class="balance" id="balance">₹0</strong></div>
     </div>
-    <div class="vehicle-expense vehicle-kpis">
-    <div class="vehicle-kpi"><span>🏍️ Bike Expense</span><b id="bikeExpense">₹0</b></div>
-    <div class="vehicle-kpi"><span>🚗 Car Expense</span><b id="carExpense">₹0</b></div>
-  </div>
+    <div class="vehicle-summary-grid">
+      <div class="vehicle-summary-card">
+        <span>🏍️ Bike Expense</span>
+        <strong id="bikeExpenseSummary">₹0</strong>
+      </div>
+      <div class="vehicle-summary-card">
+        <span>🚗 Car Expense</span>
+        <strong id="carExpenseSummary">₹0</strong>
+      </div>
+    </div>
     <div class="refresh-row">
       <span class="refresh-pill" id="dashboardRefreshStatus">Cloud refresh: ready</span>
       <button class="secondary" type="button" onclick="loadCloud()">Refresh now</button>
@@ -976,30 +932,22 @@ function renderRecentTransactions(){
     </div>`).join("");
 }
 
-
-function updateVehicleKPIs(){
-  const bike=transactions.filter(t=>t.type!=="Income" && String(t.vehicle||"").toLowerCase()==="bike")
-    .reduce((s,t)=>s+Number(t.amount||0),0);
-  const car=transactions.filter(t=>t.type!=="Income" && String(t.vehicle||"").toLowerCase()==="car")
-    .reduce((s,t)=>s+Number(t.amount||0),0);
-  const be=document.getElementById("bikeExpense");
-  const ce=document.getElementById("carExpense");
-  if(be)be.textContent=money(bike);
-  if(ce)ce.textContent=money(car);
-}
-
 function render(){
-  updateVehicleKPIs();
-  let income=0,expense=0,vehicleExpense=0;
+  let income=0,expense=0,bikeExpense=0,carExpense=0;
   transactions.forEach(t=>{
     const amount=Number(t.amount||0);
     if(t.type==="Income") income+=amount;
-    else {expense+=amount;if(t.vehicle)vehicleExpense+=amount;}
+    else {
+      expense+=amount;
+      if(t.vehicle==="Bike") bikeExpense+=amount;
+      if(t.vehicle==="Car") carExpense+=amount;
+    }
   });
   totalIncome.textContent=money(income);
   totalExpense.textContent=money(expense);
   balance.textContent=money(income-expense);
-
+  document.getElementById("bikeExpenseSummary").textContent=money(bikeExpense);
+  document.getElementById("carExpenseSummary").textContent=money(carExpense);
   updateMaintenanceDashboard();
   renderDashboardCharts();
 
