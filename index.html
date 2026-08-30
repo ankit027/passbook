@@ -83,6 +83,34 @@ button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;bor
 .edit-btn:hover{background:#f1f5f9}
 @media(max-width:600px){.edit-grid{grid-template-columns:1fr}.edit-grid .full{grid-column:auto}}
 
+
+/* Dashboard month slicer + dark mode */
+.dashboard-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 16px}
+.month-slicer{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.month-slicer-label{font-size:12px;font-weight:700;color:#475569;margin-right:2px}
+.month-chip{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:7px 13px;font-size:11px;cursor:pointer}
+.month-chip.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.theme-toggle{margin-left:auto;border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:7px 12px;font-size:11px;cursor:pointer}
+.dark{background:#0f172a!important;color:#e5e7eb!important}
+.dark .card,.dark .chart-card,.dark .edit-box{background:#111827!important;border-color:#334155!important;color:#e5e7eb!important}
+.dark .chart-sub,.dark .month-slicer-label,.dark .bar-label,.dark .bar-value{color:#cbd5e1!important}
+.dark .month-chip,.dark .theme-toggle,.dark .edit-btn{background:#1e293b;color:#e5e7eb;border-color:#475569}
+.dark .month-chip.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.dark .kpi-mini div{background:#1e293b;border-color:#334155}
+.dark .donut:after{background:#111827}
+.dark input,.dark select,.dark textarea{background:#0f172a!important;color:#e5e7eb!important;border-color:#475569!important}
+.dark .refresh-pill{background:#1e293b;color:#cbd5e1}
+@media(max-width:700px){.theme-toggle{margin-left:0}}
+
+
+.category-slicer{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.category-slicer-label{font-size:12px;font-weight:700;color:#475569;margin-right:2px}
+.category-chip{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:7px 13px;font-size:11px;cursor:pointer}
+.category-chip.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.dark .category-slicer-label{color:#cbd5e1}
+.dark .category-chip{background:#1e293b;color:#e5e7eb;border-color:#475569}
+.dark .category-chip.active{background:#2563eb;color:#fff;border-color:#2563eb}
+
 </style>
 </head>
 <body>
@@ -116,8 +144,20 @@ button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;bor
   </div>
 
   <div class="kpi-mini">
-    <div><small>This Month Expense</small><b id="monthExpense">₹0</b></div>
-    <div><small>This Month Income</small><b id="monthIncome">₹0</b></div>
+    <div><small>Selected Month Expense</small><b id="monthExpense">₹0</b></div>
+    <div><small>Selected Month Income</small><b id="monthIncome">₹0</b></div>
+  </div>
+
+  <div class="dashboard-tools">
+    <div class="month-slicer">
+      <span class="month-slicer-label">Month:</span>
+      <div id="monthSlicer"></div>
+    </div>
+    <div class="category-slicer">
+      <span class="category-slicer-label">Category:</span>
+      <div id="categorySlicer"></div>
+    </div>
+    <button class="theme-toggle" type="button" onclick="toggleDarkMode()" id="themeToggle">🌙 Dark Mode</button>
   </div>
 
   <div class="chart-grid">
@@ -547,9 +587,56 @@ function renderDonut(elId,items){
  items.forEach((x,i)=>{const end=angle+(x.value/total)*360;stops.push(CHART_COLORS[i%CHART_COLORS.length]+" "+angle+"deg "+end+"deg");angle=end;});
  el.innerHTML='<div class="donut-wrap"><div class="donut" style="background:conic-gradient('+stops.join(",")+')"></div><div class="legend">'+items.slice(0,10).map((x,i)=>'<div class="legend-row"><span class="legend-dot" style="background:'+CHART_COLORS[i%CHART_COLORS.length]+'"></span><span>'+escapeHtml(x.label)+' — '+shortMoney(x.value)+'</span></div>').join("")+'</div></div>';
 }
+let selectedDashboardMonth = new Date().toISOString().slice(0,7);
+
+function buildMonthSlicer(){
+ const box=document.getElementById("monthSlicer"); if(!box)return;
+ const months=[...new Set(transactions.map(t=>monthKeyOf(t.date)).filter(Boolean))].sort().reverse();
+ if(!months.length){box.innerHTML="";return;}
+ if(!months.includes(selectedDashboardMonth)) selectedDashboardMonth=months[0];
+ box.innerHTML=months.map(k=>'<button class="month-chip '+(k===selectedDashboardMonth?'active':'')+'" onclick="selectDashboardMonth(\''+k+'\')">'+monthLabel(k)+'</button>').join("");
+}
+function selectDashboardMonth(k){
+ selectedDashboardMonth=k;
+ buildMonthSlicer();
+ renderDashboardCharts();
+}
+function toggleDarkMode(){
+ document.documentElement.classList.toggle("dark");
+ const on=document.documentElement.classList.contains("dark");
+ localStorage.setItem("passbookDarkMode",on?"1":"0");
+ const b=document.getElementById("themeToggle");
+ if(b)b.textContent=on?"☀️ Light Mode":"🌙 Dark Mode";
+}
+function loadTheme(){
+ const on=localStorage.getItem("passbookDarkMode")==="1";
+ if(on)document.documentElement.classList.add("dark");
+ const b=document.getElementById("themeToggle");
+ if(b)b.textContent=on?"☀️ Light Mode":"🌙 Dark Mode";
+}
+
+
+let selectedDashboardCategory = "All";
+
+function buildCategorySlicer(){
+ const box=document.getElementById("categorySlicer"); if(!box)return;
+ const categories=[...new Set(transactions.filter(t=>t.type!=="Income").map(t=>String(t.category||"Other").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+ const all=["All",...categories];
+ if(selectedDashboardCategory!=="All" && !categories.includes(selectedDashboardCategory)) selectedDashboardCategory="All";
+ box.innerHTML=all.map(c=>'<button class="category-chip '+(c===selectedDashboardCategory?'active':'')+'" onclick="selectDashboardCategory('+JSON.stringify(c)+')">'+escapeHtml(c)+'</button>').join("");
+}
+function selectDashboardCategory(category){
+ selectedDashboardCategory=category;
+ buildCategorySlicer();
+ renderDashboardCharts();
+}
+
 function renderDashboardCharts(){
- const currentMonth=new Date().toISOString().slice(0,7);
- const expenses=transactions.filter(t=>t.type!=="Income"), incomes=transactions.filter(t=>t.type==="Income");
+ buildMonthSlicer();
+ buildCategorySlicer();
+ const currentMonth=selectedDashboardMonth;
+ const expenses=transactions.filter(t=>t.type!=="Income" && (selectedDashboardCategory==="All" || String(t.category||"Other").trim()===selectedDashboardCategory)), incomes=transactions.filter(t=>t.type==="Income");
+
  const monthly={};
  expenses.forEach(t=>{const k=monthKeyOf(t.date);if(k)monthly[k]=(monthly[k]||0)+Number(t.amount||0);});
  renderBars("monthlyExpenseChart",Object.keys(monthly).sort().slice(-8).map(k=>({label:monthLabel(k),value:monthly[k]})),8);
@@ -577,6 +664,7 @@ function renderDashboardCharts(){
  document.getElementById("monthIncome").textContent=money(mi);
  document.getElementById("monthExpense").textContent=money(me);
 }
+
 
 function render(){
   let income=0,expense=0,vehicleExpense=0;
