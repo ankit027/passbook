@@ -154,33 +154,11 @@ html.dark .stat strong,
 html.dark .status{
   color:#e5e7eb !important;
 }
-html.dark .kpi-mini div,
-html.dark .stat,
-html.dark .status,
-html.dark .vehicle-box,
-html.dark .vehicle-kpi{
+html.dark .kpi-mini div{
   background:#172238 !important;
   color:#e5e7eb !important;
-  border-color:#334155 !important;
+  border:1px solid #334155 !important;
 }
-html.dark .stat small,
-html.dark .stat strong,
-html.dark .kpi-mini small,
-html.dark .kpi-mini b,
-html.dark .vehicle-kpi span,
-html.dark .vehicle-kpi b{
-  color:#f8fafc !important;
-}
-html.dark .row{border-bottom-color:#334155 !important}
-html.dark .muted,
-html.dark .hint,
-html.dark .transaction-note,
-html.dark .recent-count{color:#94a3b8 !important}
-html.dark .edit-btn{background:#1e293b !important;color:#f8fafc !important;border-color:#475569 !important}
-html.dark .edit-btn.delete-btn{color:#fca5a5 !important;border-color:#7f1d1d !important}
-html.dark .chart-card{color:#f8fafc !important}
-html.dark .bar-chart{border-bottom-color:#475569 !important}
-html.dark .empty-chart{color:#94a3b8 !important}
 html.dark .kpi-mini small,
 html.dark .kpi-mini b{color:#e5e7eb !important}
 html.dark .month-slicer-label,
@@ -241,12 +219,85 @@ html.dark td{color:#e5e7eb !important;border-color:#334155 !important}
 .dark .recent-count,.dark .transaction-note{color:#94a3b8}
 
 
-.vehicle-kpis{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;padding:0!important;background:transparent!important}
-.vehicle-kpi{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:10px;background:#eef3f9;color:#64748b;font-size:12px}
-.vehicle-kpi b{font-size:15px;color:#172033}
-.dark .vehicle-kpi{background:#1e293b;color:#94a3b8}
-.dark .vehicle-kpi b{color:#e5e7eb}
-@media(max-width:600px){.vehicle-kpis{grid-template-columns:1fr}}
+
+/* Vehicle expense split */
+.vehicle-summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
+.vehicle-summary-card{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;background:#f1f5f9;color:#475569;font-size:13px}
+.vehicle-summary-card strong{color:#111827;font-size:15px}
+@media(max-width:600px){.vehicle-summary-grid{grid-template-columns:1fr}}
+
+/* Dark mode - keep the existing design, but make ALL dashboard elements readable */
+html.dark body{background:#0b1220 !important;color:#e5e7eb !important}
+html.dark .stat{background:#172238 !important;border-color:#334155 !important;color:#e5e7eb !important}
+html.dark .stat small{color:#94a3b8 !important}
+html.dark .stat strong{color:#f8fafc !important}
+html.dark .status{background:#1e293b !important;color:#cbd5e1 !important;border:1px solid #334155 !important}
+html.dark .vehicle-summary-card{background:#1e293b !important;color:#cbd5e1 !important;border:1px solid #334155 !important}
+html.dark .vehicle-summary-card strong{color:#f8fafc !important}
+html.dark .vehicle-box{background:#111827 !important;border-color:#334155 !important;color:#e5e7eb !important}
+html.dark .maintenance-card{background:#172238 !important;border-color:#334155 !important;color:#e5e7eb !important}
+html.dark .maint-line{border-color:#334155 !important}
+html.dark .row{border-color:#334155 !important}
+html.dark .muted,.dark .hint{color:#94a3b8 !important}
+html.dark .chart-card{color:#e5e7eb !important}
+html.dark .chart-card h3{color:#f8fafc !important}
+html.dark .empty-chart{color:#94a3b8 !important}
+html.dark .bar-chart{border-color:#475569 !important}
+html.dark .legend{color:#cbd5e1 !important}
+html.dark .legend-row{color:#cbd5e1 !important}
+html.dark .recent-filter{background:#1e293b !important;color:#f8fafc !important;border-color:#475569 !important}
+html.dark .recent-count,html.dark .transaction-note{color:#94a3b8 !important}
+
+
+/* FINAL DARK MODE PATCH — presentation only */
+html.dark .maintenance-card,
+html.dark .maintenance-grid .maintenance-card {
+  background: #172238 !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+html.dark .maintenance-card h3,
+html.dark .maintenance-card span,
+html.dark .maintenance-card .maint-value,
+html.dark .maintenance-card .maint-line {
+  color: #f8fafc !important;
+}
+html.dark .maintenance-card .maint-line {
+  border-bottom-color: #334155 !important;
+}
+html.dark .maintenance-card .maint-info {
+  color: #60a5fa !important;
+}
+html.dark .maintenance-card .maint-ok {
+  color: #22c55e !important;
+}
+html.dark .maintenance-card .maint-due {
+  color: #ef4444 !important;
+}
+html.dark .vehicle-summary-card,
+html.dark .vehicle-summary-card strong {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+html.dark .vehicle-box {
+  background: #111827 !important;
+  color: #e5e7eb !important;
+  border-color: #334155 !important;
+}
+html.dark .vehicle-box h3,
+html.dark .vehicle-box label,
+html.dark .vehicle-box .hint,
+html.dark .vehicle-box .muted {
+  color: #e5e7eb !important;
+}
+html.dark .vehicle-box input,
+html.dark .vehicle-box select,
+html.dark .vehicle-box textarea {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
 
 </style>
 </head>
@@ -273,10 +324,16 @@ html.dark td{color:#e5e7eb !important;border-color:#334155 !important}
       <div class="stat"><small>Total Expense</small><strong class="expense" id="totalExpense">₹0</strong></div>
       <div class="stat"><small>Balance</small><strong class="balance" id="balance">₹0</strong></div>
     </div>
-    <div class="vehicle-expense vehicle-kpis">
-    <div class="vehicle-kpi"><span>🏍️ Bike Expense</span><b id="bikeExpense">₹0</b></div>
-    <div class="vehicle-kpi"><span>🚗 Car Expense</span><b id="carExpense">₹0</b></div>
-  </div>
+    <div class="vehicle-summary-grid">
+      <div class="vehicle-summary-card">
+        <span>🏍️ Bike Expense</span>
+        <strong id="bikeExpenseSummary">₹0</strong>
+      </div>
+      <div class="vehicle-summary-card">
+        <span>🚗 Car Expense</span>
+        <strong id="carExpenseSummary">₹0</strong>
+      </div>
+    </div>
     <div class="refresh-row">
       <span class="refresh-pill" id="dashboardRefreshStatus">Cloud refresh: ready</span>
       <button class="secondary" type="button" onclick="loadCloud()">Refresh now</button>
@@ -823,9 +880,28 @@ let recentPeriod = "week";
 
 function localDateOnly(s){
   if(!s)return null;
-  const p=String(s).split("-").map(Number);
-  if(p.length<3 || p.some(Number.isNaN))return null;
-  return new Date(p[0],p[1]-1,p[2]);
+  if(s instanceof Date && !isNaN(s.getTime()))
+    return new Date(s.getFullYear(),s.getMonth(),s.getDate());
+
+  const v=String(s).trim();
+
+  // ISO date/date-time: 2026-08-30 or 2026-08-30T...
+  let m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m)return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+
+  // Slash/dot dates: 8/30/2026 or 30/8/2026
+  m=v.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
+  if(m){
+    const a=Number(m[1]), b=Number(m[2]), y=Number(m[3]);
+    if(a>12)return new Date(y,b-1,a);
+    if(b>12)return new Date(y,a-1,b);
+    return new Date(y,a-1,b);
+  }
+
+  const parsed=new Date(v);
+  return isNaN(parsed.getTime())
+    ? null
+    : new Date(parsed.getFullYear(),parsed.getMonth(),parsed.getDate());
 }
 function startOfLocalWeek(d){
   const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());
@@ -836,13 +912,23 @@ function startOfLocalWeek(d){
 }
 function isRecentMatch(t,period){
   if(period==="all")return true;
-  const d=localDateOnly(t.date); if(!d)return false;
+
+  const d=localDateOnly(t.date);
+  if(!d)return false;
+
   const now=new Date();
+  const todayOnly=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+
   if(period==="month"){
-    return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
+    return d.getFullYear()===todayOnly.getFullYear()
+      && d.getMonth()===todayOnly.getMonth();
   }
-  const start=startOfLocalWeek(now);
-  const end=new Date(start); end.setDate(start.getDate()+7);
+
+  // This Week = Monday through Sunday of the current week.
+  const start=startOfLocalWeek(todayOnly);
+  const end=new Date(start);
+  end.setDate(start.getDate()+7);
+
   return d>=start && d<end;
 }
 function setRecentPeriod(period){
@@ -871,35 +957,26 @@ function renderRecentTransactions(){
       <div>
         <div class="amount ${t.type==="Income"?"income":"expense"}">${t.type==="Income"?"+":"-"}${money(t.amount)}</div>
         <button class="edit-btn" type="button" onclick="editTransaction('${escapeHtml(t.id)}')">Edit</button>
-        <button class="edit-btn delete-btn" type="button" onclick="deleteTransaction('${escapeHtml(t.id)}')">Delete</button>
       </div>
     </div>`).join("");
 }
 
-
-function updateVehicleKPIs(){
-  const bike=transactions.filter(t=>t.type!=="Income" && String(t.vehicle||"").toLowerCase()==="bike")
-    .reduce((s,t)=>s+Number(t.amount||0),0);
-  const car=transactions.filter(t=>t.type!=="Income" && String(t.vehicle||"").toLowerCase()==="car")
-    .reduce((s,t)=>s+Number(t.amount||0),0);
-  const be=document.getElementById("bikeExpense");
-  const ce=document.getElementById("carExpense");
-  if(be)be.textContent=money(bike);
-  if(ce)ce.textContent=money(car);
-}
-
 function render(){
-  updateVehicleKPIs();
-  let income=0,expense=0,vehicleExpense=0;
+  let income=0,expense=0,bikeExpense=0,carExpense=0;
   transactions.forEach(t=>{
     const amount=Number(t.amount||0);
     if(t.type==="Income") income+=amount;
-    else {expense+=amount;if(t.vehicle)vehicleExpense+=amount;}
+    else {
+      expense+=amount;
+      if(t.vehicle==="Bike") bikeExpense+=amount;
+      if(t.vehicle==="Car") carExpense+=amount;
+    }
   });
   totalIncome.textContent=money(income);
   totalExpense.textContent=money(expense);
   balance.textContent=money(income-expense);
-  vehicleSummary.textContent="Vehicle expense: "+money(vehicleExpense);
+  document.getElementById("bikeExpenseSummary").textContent=money(bikeExpense);
+  document.getElementById("carExpenseSummary").textContent=money(carExpense);
   updateMaintenanceDashboard();
   renderDashboardCharts();
 
@@ -995,34 +1072,6 @@ function saveEditedTransaction(){
   setStatus("Edited locally. Sending update to Google Sheet...");
 }
 
-async function deleteTransaction(id){
-  const index=transactions.findIndex(x=>String(x.id)===String(id));
-  if(index<0){alert("Transaction not found.");return;}
-  const t=transactions[index];
-  const label=t.vehicle ? (t.vehicle+" • "+(t.activity||"Vehicle")) : (t.category||t.source||t.type);
-  if(!confirm("Delete this transaction?\n\n"+label+" — "+money(t.amount)+"\n"+t.date)) return;
-
-  // Remove immediately from this device.
-  transactions.splice(index,1);
-  saveLocal();
-  render();
-  updateOdoHints();
-  updateMaintenanceDashboard();
-  setStatus("Transaction deleted locally. Deleting from Google Sheet...");
-
-  try{
-    await fetch(getUrl(),{
-      method:"POST",
-      mode:"no-cors",
-      headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({action:"delete",id:String(t.id)})
-    });
-    setStatus("Transaction deleted from this device and Google Sheet.");
-  }catch(err){
-    setStatus("Deleted locally, but Google Sheet delete failed. Check Apps Script deployment.");
-  }
-}
-
 async function syncUpdate(t){
   try{
     await fetch(getUrl(),{
@@ -1056,99 +1105,60 @@ function saveUrl(){
 }
 
 function loadCloud(auto=false){
-  const url=getUrl();
-  if(!url){setStatus("Apps Script URL is not set.");return;}
-  const callback="passbookCallback_"+Date.now();
+  const url=getUrl(), callback="passbookCallback_"+Date.now();
   setStatus("Loading cloud data...");
   cloudRefreshInProgress=true;
 
   window[callback]=function(data){
     try{
-      let cloud=[];
+      if(!Array.isArray(data)) throw new Error("Invalid response");
 
-      // Final Apps Script returns {success:true, records:[...]}
-      if(data && data.success===true && Array.isArray(data.records)){
-        cloud=data.records.map(normalizeCloudRecord);
-      }
-      // Also support the older header/rows response format.
-      else if(Array.isArray(data)){
-        const headers=data[0]||[], rows=data.slice(1), idx={};
-        headers.forEach((h,i)=>idx[h]=i);
-        const idIndex=idx.ID!==undefined?idx.ID:idx["Record ID"];
-        if(idIndex===undefined) throw new Error("ID column not found");
-        cloud=rows.filter(r=>r[idIndex]!==undefined && String(r[idIndex]).trim()!=="").map(r=>({
-          id:r[idIndex], date:r[idx.Date]||"", type:r[idx.Type]||"Expense",
-          category:r[idx.Category]||"", source:r[idx.Source]||"",
-          paymentMethod:r[idx["Payment Method"]]||"", amount:Number(r[idx.Amount]||0),
-          note:r[idx.Note]||"", vehicle:r[idx.Vehicle]||"", activity:r[idx.Activity]||"",
-          odometer:r[idx.Odometer]!==undefined?r[idx.Odometer]:(r[idx["Odometer (Km)"]]??""),
-          difference:r[idx["Difference Km"]]!==undefined?r[idx["Difference Km"]]:(r[idx["Difference (Km)"]]??""),
-          plannedOdo:r[idx["Planned Odometer"]]??"", actualOdo:r[idx["Actual Odometer"]]??"",
-          maintenanceDifference:r[idx["Actual-Planned Difference"]]!==undefined?r[idx["Actual-Planned Difference"]]:(r[idx["Maintenance Difference"]]??"")
-        }).map(normalizeCloudRecord));
-      }else{
-        throw new Error((data&&data.error)||"Invalid response");
-      }
+      const headers=data[0]||[], rows=data.slice(1), idx={};
+      headers.forEach((h,i)=>idx[h]=i);
 
-      // Cloud is authoritative when loading. Deleted records therefore stay deleted.
-      transactions=cloud.filter(t=>String(t.id||"").trim()!=="")
-        .sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+      const cloud=rows.filter(r=>r[idx.ID]).map(r=>({
+        id:r[idx.ID], date:r[idx.Date]||"", type:r[idx.Type]||"",
+        category:r[idx.Category]||"", source:r[idx.Source]||"",
+        paymentMethod:r[idx["Payment Method"]]||"",
+        amount:Number(r[idx.Amount]||0), note:r[idx.Note]||"",
+        vehicle:r[idx.Vehicle]||"", activity:r[idx.Activity]||"",
+        odometer:r[idx.Odometer]??"",
+        difference:r[idx["Difference Km"]]??"",
+        plannedOdo:r[idx["Planned Odometer"]]??"",
+        actualOdo:r[idx["Actual Odometer"]]??"",
+        maintenanceDifference:r[idx["Actual-Planned Difference"]]??""
+      }));
+
+      // Cloud is authoritative when loading. This prevents duplicate records.
+      transactions=cloud.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
       saveLocal();
       render();
       updateOdoHints();
       updateMaintenanceDashboard();
-      setStatus("Cloud data loaded successfully. "+transactions.length+" records found.");
+      setStatus("Cloud data loaded successfully. "+cloud.length+" records found.");
       cloudRefreshInProgress=false;
-      const rs=document.getElementById("dashboardRefreshStatus");
-      if(rs) rs.textContent="Cloud refresh: "+new Date().toLocaleTimeString("en-IN");
+      const rs=document.getElementById("dashboardRefreshStatus"); if(rs) rs.textContent="Cloud refresh: "+new Date().toLocaleTimeString("en-IN");
     }catch(e){
-      console.error(e);
-      setStatus("Cloud data received, but could not be read: "+e.message);
+      setStatus("Cloud data received, but could not be read.");
       cloudRefreshInProgress=false;
     }
+
     delete window[callback];
-    if(script && script.parentNode) script.remove();
+    script.remove();
   };
 
   const script=document.createElement("script");
   script.src=url+(url.includes("?")?"&":"?")+"callback="+encodeURIComponent(callback)+"&t="+Date.now();
+
   script.onerror=function(){
     setStatus("Could not connect to Apps Script. Check deployment access and URL.");
     cloudRefreshInProgress=false;
     delete window[callback];
     script.remove();
   };
+
   document.body.appendChild(script);
 }
-
-function normalizeCloudRecord(r){
-  return {
-    id:String(r.id??"").trim(),
-    date:normalizeDateValue(r.date),
-    type:r.type||"Expense",
-    category:r.category||"",
-    source:r.source||"",
-    paymentMethod:r.paymentMethod||"",
-    amount:Number(r.amount||0),
-    note:r.note||"",
-    vehicle:r.vehicle||"",
-    activity:r.activity||"",
-    odometer:r.odometer??"",
-    difference:r.difference??"",
-    plannedOdo:r.plannedOdo??"",
-    actualOdo:r.actualOdo??"",
-    maintenanceDifference:r.maintenanceDifference??""
-  };
-}
-
-function normalizeDateValue(v){
-  if(!v)return "";
-  const s=String(v);
-  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
-  const d=new Date(s);
-  return Number.isNaN(d.getTime())?s:d.toISOString().slice(0,10);
-}
-
 
 scriptUrl.value=localStorage.getItem(URLKEY)||SCRIPT_URL;
 render();updateOdoHints();
@@ -1165,7 +1175,6 @@ function autoRefreshCloud(force=false){
   loadCloud(true);
 }
 setInterval(()=>autoRefreshCloud(false),CLOUD_REFRESH_MS);
-setTimeout(()=>autoRefreshCloud(true),800);
 window.addEventListener("focus",()=>autoRefreshCloud(false));
 window.addEventListener("online",()=>autoRefreshCloud(true));
 
