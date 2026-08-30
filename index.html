@@ -382,31 +382,50 @@ function saveUrl(){
 function loadCloud(){
   const url=getUrl(), callback="passbookCallback_"+Date.now();
   setStatus("Loading cloud data...");
+
   window[callback]=function(data){
     try{
-      if(!Array.isArray(data))throw new Error("Invalid response");
+      if(!Array.isArray(data)) throw new Error("Invalid response");
+
       const headers=data[0]||[], rows=data.slice(1), idx={};
       headers.forEach((h,i)=>idx[h]=i);
+
       const cloud=rows.filter(r=>r[idx.ID]).map(r=>({
-        id:r[idx.ID],date:r[idx.Date]||"",type:r[idx.Type]||"",
-        category:r[idx.Category]||"",source:r[idx.Source]||"",
-        paymentMethod:r[idx["Payment Method"]]||"",amount:Number(r[idx.Amount]||0),
-        note:r[idx.Note]||"",vehicle:r[idx.Vehicle]||"",
-        activity:r[idx.Activity]||"",odometer:r[idx.Odometer]??"",
-        difference:r[idx["Difference Km"]]??"",plannedOdo:r[idx["Planned Odometer"]]??"",
+        id:r[idx.ID], date:r[idx.Date]||"", type:r[idx.Type]||"",
+        category:r[idx.Category]||"", source:r[idx.Source]||"",
+        paymentMethod:r[idx["Payment Method"]]||"",
+        amount:Number(r[idx.Amount]||0), note:r[idx.Note]||"",
+        vehicle:r[idx.Vehicle]||"", activity:r[idx.Activity]||"",
+        odometer:r[idx.Odometer]??"",
+        difference:r[idx["Difference Km"]]??"",
+        plannedOdo:r[idx["Planned Odometer"]]??"",
         actualOdo:r[idx["Actual Odometer"]]??"",
         maintenanceDifference:r[idx["Actual-Planned Difference"]]??""
       }));
-      const map={};transactions.forEach(t=>map[t.id]=t);cloud.forEach(t=>map[t.id]=t);
-      transactions=Object.values(map).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-      saveLocal();render();updateOdoHints();
-      setStatus("Cloud data loaded. "+cloud.length+" records found.");
-    }catch(e){setStatus("Could not read cloud data.");}
-    delete window[callback];script.remove();
+
+      // Cloud is authoritative when loading. This prevents duplicate records.
+      transactions=cloud.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+      saveLocal();
+      render();
+      updateOdoHints();
+      setStatus("Cloud data loaded successfully. "+cloud.length+" records found.");
+    }catch(e){
+      setStatus("Cloud data received, but could not be read.");
+    }
+
+    delete window[callback];
+    script.remove();
   };
+
   const script=document.createElement("script");
-  script.src=url+(url.includes("?")?"&":"?")+"callback="+callback+"&t="+Date.now();
-  script.onerror=function(){setStatus("Could not connect to Apps Script.");delete window[callback];script.remove();};
+  script.src=url+(url.includes("?")?"&":"?")+"callback="+encodeURIComponent(callback)+"&t="+Date.now();
+
+  script.onerror=function(){
+    setStatus("Could not connect to Apps Script. Check deployment access and URL.");
+    delete window[callback];
+    script.remove();
+  };
+
   document.body.appendChild(script);
 }
 
