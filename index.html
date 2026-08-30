@@ -978,24 +978,53 @@ function doPost(e) {
     if(r.actualOdo !== "" && r.actualOdo != null) out.actualOdo = Number(r.actualOdo);
     return out;
   }
-
-  async function saveEntries(){
-    try{ await window.storage.set('expenses', JSON.stringify(entries), false); }
-    catch(e){ toast("Couldn't save — try again"); }
+// ---------- Local browser storage ----------
+function storageGet(key, fallback) {
+  try {
+    const value = localStorage.getItem("passbook_" + key);
+    return value !== null ? JSON.parse(value) : fallback;
+  } catch (e) {
+    return fallback;
   }
-  async function saveIncomes(){
-    try{ await window.storage.set('incomes', JSON.stringify(incomes), false); }
-    catch(e){ toast("Couldn't save income"); }
-  }
+}
 
-  async function saveVehicleLogs(){
-    try{ await window.storage.set('vehicleLogs', JSON.stringify(vehicleLogs), false); }
-    catch(e){ toast("Couldn't save vehicle data"); }
+function storageSet(key, value) {
+  try {
+    localStorage.setItem(
+      "passbook_" + key,
+      JSON.stringify(value)
+    );
+    return true;
+  } catch (e) {
+    return false;
   }
+}
 
-  async function saveSettings(){
-    try{ await window.storage.set('settings', JSON.stringify(settings), false); }
-    catch(e){ toast("Couldn't save settings"); }
+
+// ---------- Save data ----------
+async function saveEntries(){
+  if (!storageSet("expenses", entries)) {
+    toast("Couldn't save expenses");
+  }
+}
+
+async function saveIncomes(){
+  if (!storageSet("incomes", incomes)) {
+    toast("Couldn't save income");
+  }
+}
+
+async function saveVehicleLogs(){
+  if (!storageSet("vehicleLogs", vehicleLogs)) {
+    toast("Couldn't save vehicle data");
+  }
+}
+
+async function saveSettings(){
+  if (!storageSet("settings", settings)) {
+    toast("Couldn't save settings");
+  }
+}
   }
 
   // ---------- Sheet sync ----------
