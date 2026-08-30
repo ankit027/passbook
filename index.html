@@ -104,12 +104,10 @@ button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;bor
 
 
 .category-slicer{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
-.category-slicer-label{font-size:12px;font-weight:700;color:#475569;margin-right:2px}
-.category-chip{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:7px 13px;font-size:11px;cursor:pointer}
-.category-chip.active{background:#2563eb;color:#fff;border-color:#2563eb}
-.dark .category-slicer-label{color:#cbd5e1}
-.dark .category-chip{background:#1e293b;color:#e5e7eb;border-color:#475569}
-.dark .category-chip.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.category-slicer-label{font-size:12px;font-weight:700;color:#475569;margin-right:2px}.dark .category-slicer-label{color:#cbd5e1}
+
+.category-dropdown{border:1px solid #cbd5e1;background:#fff;color:#1e293b;border-radius:8px;padding:7px 32px 7px 10px;font-size:12px;min-width:170px;cursor:pointer}
+.dark .category-dropdown{background:#1e293b;color:#e5e7eb;border-color:#475569}
 
 </style>
 </head>
@@ -155,7 +153,9 @@ button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;bor
     </div>
     <div class="category-slicer">
       <span class="category-slicer-label">Category:</span>
-      <div id="categorySlicer"></div>
+      <select id="categorySlicer" class="category-dropdown" onchange="selectDashboardCategory(this.value)">
+        <option value="All">All Categories</option>
+      </select>
     </div>
     <button class="theme-toggle" type="button" onclick="toggleDarkMode()" id="themeToggle">🌙 Dark Mode</button>
   </div>
@@ -621,9 +621,10 @@ let selectedDashboardCategory = "All";
 function buildCategorySlicer(){
  const box=document.getElementById("categorySlicer"); if(!box)return;
  const categories=[...new Set(transactions.filter(t=>t.type!=="Income").map(t=>String(t.category||"Other").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
- const all=["All",...categories];
  if(selectedDashboardCategory!=="All" && !categories.includes(selectedDashboardCategory)) selectedDashboardCategory="All";
- box.innerHTML=all.map(c=>'<button class="category-chip '+(c===selectedDashboardCategory?'active':'')+'" onclick="selectDashboardCategory('+JSON.stringify(c)+')">'+escapeHtml(c)+'</button>').join("");
+ box.innerHTML='<option value="All">All Categories</option>'+
+   categories.map(c=>'<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>').join("");
+ box.value=selectedDashboardCategory;
 }
 function selectDashboardCategory(category){
  selectedDashboardCategory=category;
