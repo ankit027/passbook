@@ -71,6 +71,18 @@ button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;bor
 .refresh-pill{font-size:11px;color:#475569;background:#f1f5f9;border-radius:999px;padding:6px 10px}
 @media(max-width:700px){.chart-grid{grid-template-columns:1fr}.chart-card{min-height:230px}}
 
+
+.edit-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9999}
+.edit-modal.hidden{display:none}
+.edit-box{background:#fff;width:min(560px,100%);max-height:90vh;overflow:auto;border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.edit-box h3{margin:0 0 14px}
+.edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.edit-grid .full{grid-column:1/-1}
+.edit-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.edit-btn{font-size:11px;padding:5px 9px;border-radius:7px;border:1px solid #cbd5e1;background:#fff;cursor:pointer}
+.edit-btn:hover{background:#f1f5f9}
+@media(max-width:600px){.edit-grid{grid-template-columns:1fr}.edit-grid .full{grid-column:auto}}
+
 </style>
 </head>
 <body>
@@ -287,6 +299,39 @@ button.secondary{padding:10px 14px;border:1px solid #d1d5db;background:white;bor
   </div>
 </section>
 </main>
+
+
+<div id="editModal" class="edit-modal hidden">
+  <div class="edit-box">
+    <h3>Edit Transaction</h3>
+    <input type="hidden" id="editId">
+    <div class="edit-grid">
+      <div><label>Date</label><input id="editDate" type="date"></div>
+      <div><label>Type</label><input id="editType" readonly></div>
+      <div><label>Category</label><input id="editCategory"></div>
+      <div><label>Source</label><input id="editSource"></div>
+      <div><label>Payment Method</label><input id="editPaymentMethod"></div>
+      <div><label>Amount (₹)</label><input id="editAmount" type="number" min="0" step="0.01"></div>
+      <div class="full"><label>Note</label><textarea id="editNote" rows="2"></textarea></div>
+
+      <div id="editVehicleFields" class="full hidden">
+        <div class="edit-grid">
+          <div><label>Vehicle</label><select id="editVehicle"><option>Bike</option><option>Car</option></select></div>
+          <div><label>Activity</label><select id="editActivity"><option>Petrol</option><option>Oil Change</option><option>Service</option><option>Oil/Coolant Change</option></select></div>
+          <div><label>Odometer (Km)</label><input id="editOdometer" type="number" min="0"></div>
+          <div><label>Difference (Km)</label><input id="editDifference" type="number" min="0"></div>
+          <div><label>Planned Odometer (Km)</label><input id="editPlannedOdo" type="number" min="0"></div>
+          <div><label>Actual Odometer (Km)</label><input id="editActualOdo" type="number" min="0"></div>
+          <div class="full"><label>Actual − Planned (Km)</label><input id="editMaintenanceDifference" type="number" readonly></div>
+        </div>
+      </div>
+    </div>
+    <div class="edit-actions">
+      <button class="secondary" type="button" onclick="closeEdit()">Cancel</button>
+      <button class="primary" type="button" onclick="saveEditedTransaction()">Save Changes</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyBGuTvWbwelZuSyF8XmBZYOQILuJ3ANjtWKrY3wWw-4k-iQW9w5qJNVzDF_e7HZtEF/exec";
@@ -554,8 +599,113 @@ function render(){
         <b>${escapeHtml(t.vehicle?(t.vehicle+" • "+t.activity):(t.category||t.source||t.type))}</b>
         <div class="muted">${escapeHtml(t.date)} ${t.paymentMethod?"• "+escapeHtml(t.paymentMethod):""}${t.difference!==""&&t.difference!=null?" • "+escapeHtml(t.difference)+" km":""}</div>
       </div>
-      <div class="amount ${t.type==="Income"?"income":"expense"}">${t.type==="Income"?"+":"-"}${money(t.amount)}</div>
+      <div>
+        <div class="amount ${t.type==="Income"?"income":"expense"}">${t.type==="Income"?"+":"-"}${money(t.amount)}</div>
+        <button class="edit-btn" type="button" onclick="editTransaction('${escapeHtml(t.id)}')">Edit</button>
+      </div>
     </div>`).join("");
+}
+
+
+function editTransaction(id){
+  const t=transactions.find(x=>String(x.id)===String(id));
+  if(!t){alert("Transaction not found.");return;}
+
+  editId.value=t.id;
+  editDate.value=t.date||today();
+  editType.value=t.type||"Expense";
+  editCategory.value=t.category||"";
+  editSource.value=t.source||"";
+  editPaymentMethod.value=t.paymentMethod||"";
+  editAmount.value=Number(t.amount||0);
+  editNote.value=t.note||"";
+
+  const isVehicle=!!t.vehicle;
+  editVehicleFields.classList.toggle("hidden",!isVehicle);
+  if(isVehicle){
+    editVehicle.value=t.vehicle||"Bike";
+    editActivity.value=t.activity||"Petrol";
+    editOdometer.value=t.odometer??"";
+    editDifference.value=t.difference??"";
+    editPlannedOdo.value=t.plannedOdo??"";
+    editActualOdo.value=t.actualOdo??"";
+    editMaintenanceDifference.value=t.maintenanceDifference??"";
+  }
+  editModal.classList.remove("hidden");
+}
+
+function closeEdit(){
+  editModal.classList.add("hidden");
+}
+
+function saveEditedTransaction(){
+  const id=editId.value;
+  const index=transactions.findIndex(x=>String(x.id)===String(id));
+  if(index<0){alert("Transaction not found.");return;}
+
+  const old=transactions[index];
+  const amount=Number(editAmount.value);
+  if(!editDate.value || !Number.isFinite(amount) || amount<0){
+    alert("Please enter a valid date and amount.");
+    return;
+  }
+
+  const updated={
+    ...old,
+    date:editDate.value,
+    category:editCategory.value.trim(),
+    source:editSource.value.trim(),
+    paymentMethod:editPaymentMethod.value.trim(),
+    amount:amount,
+    note:editNote.value.trim()
+  };
+
+  if(old.vehicle){
+    const vehicle=editVehicle.value;
+    const activity=editActivity.value;
+    updated.vehicle=vehicle;
+    updated.activity=activity;
+
+    if(editOdometer.value!=="") updated.odometer=Number(editOdometer.value);
+    else updated.odometer="";
+
+    if(editDifference.value!=="") updated.difference=Number(editDifference.value);
+    else updated.difference="";
+
+    if(editPlannedOdo.value!=="") updated.plannedOdo=Number(editPlannedOdo.value);
+    else updated.plannedOdo="";
+
+    if(editActualOdo.value!=="") updated.actualOdo=Number(editActualOdo.value);
+    else updated.actualOdo="";
+
+    if(editPlannedOdo.value!=="" && editActualOdo.value!==""){
+      updated.maintenanceDifference=Number(editActualOdo.value)-Number(editPlannedOdo.value);
+    }else{
+      updated.maintenanceDifference="";
+    }
+    updated.category="Vehicle";
+  }
+
+  transactions[index]=updated;
+  saveLocal();
+  render();
+  updateOdoHints();
+  closeEdit();
+  syncUpdate(updated);
+  setStatus("Edited locally. Sending update to Google Sheet...");
+}
+
+async function syncUpdate(t){
+  try{
+    await fetch(getUrl(),{
+      method:"POST",mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({...t,action:"update"})
+    });
+    setStatus("Transaction edited. Update sent to Google Sheet.");
+  }catch(err){
+    setStatus("Transaction edited locally. Sheet update failed; try again.");
+  }
 }
 
 async function syncOne(t){
